@@ -1,0 +1,200 @@
+{
+  "id": "cursor-agent",
+  "name": "Cursor Agent",
+  "description": "Invoke local Cursor Agent CLI from OpenClaw with policy-controlled plan-first delivery, testing workflow, and project context loading.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "agentPath": {
+        "type": "string",
+        "description": "Full path to the agent command (agent.cmd / agent). Leave empty for auto-detection. The plugin will auto-resolve the underlying node + index.js binary"
+      },
+      "agentNodeBin": {
+        "type": "string",
+        "description": "Direct path to the Node.js executable bundled with Cursor Agent (e.g. .../versions/2026.x.x-xxx/node.exe). When set with agentEntryScript, bypasses .cmd/shell script resolution"
+      },
+      "agentEntryScript": {
+        "type": "string",
+        "description": "Direct path to the Agent entry script (e.g. .../versions/2026.x.x-xxx/index.js). Must be used together with agentNodeBin"
+      },
+      "defaultTimeoutSec": {
+        "type": "integer",
+        "minimum": 30,
+        "maximum": 1800,
+        "description": "Default timeout in seconds, default 600"
+      },
+      "noOutputTimeoutSec": {
+        "type": "integer",
+        "minimum": 10,
+        "maximum": 600,
+        "description": "No-output timeout in seconds; process is considered hung if no output for this duration, default 120"
+      },
+      "model": {
+        "type": "string",
+        "description": "Model for Cursor Agent to use, e.g. claude-4-sonnet. Leave empty for default"
+      },
+      "enableMcp": {
+        "type": "boolean",
+        "description": "Whether to enable MCP servers (--approve-mcps), default true"
+      },
+      "mcpApprovalMode": {
+        "type": "string",
+        "enum": ["approve", "force", "off"],
+        "description": "MCP approval mode: approve (default), force (approve + --force), off (disable MCP approval args)"
+      },
+      "enableTrust": {
+        "type": "boolean",
+        "description": "Whether to pass --trust to Cursor Agent CLI, default false"
+      },
+      "projects": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "Project name to path mapping"
+      },
+      "allowAbsoluteProjectPath": {
+        "type": "boolean",
+        "description": "Allow absolute path project input outside projects mapping, default false"
+      },
+      "allowedModes": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": ["agent", "ask", "plan"]
+        },
+        "description": "Allowed execution modes across command/tool policy"
+      },
+      "allowAgentModeForCommand": {
+        "type": "boolean",
+        "description": "Allow /cursor command to execute agent mode, default false"
+      },
+      "allowAgentModeForTool": {
+        "type": "boolean",
+        "description": "Allow cursor_agent tool to execute agent mode, default true"
+      },
+      "requireMappedProjectForAgent": {
+        "type": "boolean",
+        "description": "Require mapped project for agent mode execution, default true"
+      },
+      "writableTaskPatterns": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Agent-mode prompt allowlist keywords"
+      },
+      "denyTaskPatterns": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Agent-mode prompt denylist keywords"
+      },
+      "toolDefaultMode": {
+        "type": "string",
+        "enum": ["agent", "ask", "plan"],
+        "description": "Default mode used by cursor_agent tool when mode is omitted (default agent)"
+      },
+      "commandRequireAuth": {
+        "type": "boolean",
+        "description": "Whether /cursor command requires auth, default true"
+      },
+      "prefixArgs": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Extra CLI args inserted before standard args (advanced/testing)"
+      },
+      "sessionStatePath": {
+        "type": "string",
+        "description": "Path for persisted project-session map"
+      },
+      "sessionTtlSec": {
+        "type": "integer",
+        "minimum": 60,
+        "maximum": 2592000,
+        "description": "Session persistence TTL in seconds, default 604800"
+      },
+      "maxSessionEntries": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5000,
+        "description": "Maximum persisted project-session entries, default 200"
+      },
+      "enforcePlanBeforeDevelopment": {
+        "type": "boolean",
+        "description": "Force development-class tasks to run plan mode first until project is plan-approved, default true"
+      },
+      "maxConcurrent": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 10,
+        "description": "Maximum concurrent Cursor CLI processes, default 3"
+      },
+      "enableAgentTool": {
+        "type": "boolean",
+        "description": "Whether to register Agent Tool for PI Agent auto-invocation (fallback mechanism), default true"
+      }
+    }
+  },
+  "uiHints": {
+    "agentPath": {
+      "label": "Agent CLI Path",
+      "help": "Full path to Cursor Agent CLI (agent.cmd / agent). Leave empty to auto-detect. The plugin auto-resolves the underlying node binary"
+    },
+    "agentNodeBin": {
+      "label": "Node Binary Path",
+      "help": "Direct path to Node.js executable bundled with Cursor Agent. Use with Entry Script for manual override"
+    },
+    "agentEntryScript": {
+      "label": "Entry Script Path",
+      "help": "Direct path to Agent index.js entry script. Use with Node Binary Path for manual override"
+    },
+    "defaultTimeoutSec": {
+      "label": "Default Timeout (sec)",
+      "help": "Maximum execution time per invocation"
+    },
+    "commandRequireAuth": {
+      "label": "Require Command Auth",
+      "help": "Require auth for /cursor command"
+    },
+    "allowAbsoluteProjectPath": {
+      "label": "Allow Absolute Project Path",
+      "help": "Allow project argument to be an absolute path outside projects mapping"
+    },
+    "allowAgentModeForCommand": {
+      "label": "Allow Command Agent Mode",
+      "help": "Allow /cursor to run in agent mode"
+    },
+    "allowAgentModeForTool": {
+      "label": "Allow Tool Agent Mode",
+      "help": "Allow cursor_agent tool to run in agent mode"
+    },
+    "toolDefaultMode": {
+      "label": "Tool Default Mode",
+      "help": "Default mode when cursor_agent tool mode is omitted"
+    },
+    "enforcePlanBeforeDevelopment": {
+      "label": "Enforce Plan Before Development",
+      "help": "When enabled, development-class tasks must complete plan phase before agent execution"
+    },
+    "enableTrust": {
+      "label": "Enable --trust",
+      "help": "Pass --trust flag to Cursor Agent CLI"
+    },
+    "mcpApprovalMode": {
+      "label": "MCP Approval Mode",
+      "help": "approve, force, or off"
+    },
+    "projects": {
+      "label": "Project Mapping",
+      "help": "Project name to local path mapping"
+    },
+    "maxConcurrent": {
+      "label": "Max Concurrent",
+      "help": "Maximum concurrent Cursor CLI processes"
+    },
+    "enableAgentTool": {
+      "label": "Enable Agent Tool",
+      "help": "Register cursor_agent tool for PI Agent auto-invocation in conversations. Must be enabled in tools.allow"
+    }
+  }
+}

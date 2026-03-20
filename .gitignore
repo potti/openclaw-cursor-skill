@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Reserved for temporary workflow artifacts (currently unused)
+# openspec/changes/*
+
+# IDE / Editor
+.vscode/
+*.swp
+*.swo
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+*-lock.json
