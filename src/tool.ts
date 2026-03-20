@@ -1,6 +1,6 @@
 import { runCursorAgent } from "./runner.js";
 import { formatRunResult, extractModifiedFiles } from "./formatter.js";
-import { resolveProjectPath } from "./project-path.js";
+import { buildEffectiveProjects, resolveProjectPath } from "./project-path.js";
 import { decideExecutionPolicy } from "./policy.js";
 import { SessionStore } from "./session-store.js";
 import type { CursorAgentConfig, ResolvedBinary } from "./types.js";
@@ -64,14 +64,18 @@ export function createCursorAgentTool(params: {
     description:
       `Invoke the local Cursor Agent CLI to analyze, diagnose, or modify code in a project on the host machine. ` +
       `Use this when the user asks about code analysis, debugging, or changes for a specific project. ` +
-      `Available projects: ${projectListStr}. ` +
+      (projectListStr
+        ? `Available projects: ${projectListStr}. `
+        : "If no projects configured, use project `workspace` to target <agent-workspace>/projects. ") +
       `IMPORTANT: Results are returned verbatim from Cursor Agent. You MUST NOT summarize, rephrase, or add commentary to the output.`,
     parameters: {
       type: "object" as const,
       properties: {
         project: {
           type: "string" as const,
-          description: `Project name (one of: ${projectListStr}) or absolute path to project directory`,
+          description: projectListStr
+            ? `Project name (one of: ${projectListStr}) or absolute path to project directory`
+            : "Project name (`workspace` by default) or absolute path to project directory",
         },
         prompt: {
           type: "string" as const,
@@ -111,16 +115,25 @@ export function createCursorAgentTool(params: {
         };
       }
 
+      const effectiveProjects = buildEffectiveProjects(
+        params.projects,
+        ctx.workspaceDir ?? ctx.agentDir,
+      );
+      const effectiveProjectNames = Object.keys(effectiveProjects);
+      const effectiveProjectListStr = effectiveProjectNames.join(", ");
+
       const resolvedProject = resolveProjectPath(
         project,
-        params.projects,
+        effectiveProjects,
         params.cfg.allowAbsoluteProjectPath ?? false,
       );
       if (!resolvedProject) {
         return {
           content: [{
             type: "text",
-            text: `Project not found: ${project}. Available projects: ${projectListStr}`,
+            text: effectiveProjectListStr
+              ? `Project not found: ${project}. Available projects: ${effectiveProjectListStr}`
+              : `Project not found: ${project}. If no config projects are set, use project key "workspace".`,
           }],
         };
       }

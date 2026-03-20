@@ -21,6 +21,7 @@ Execute the default delivery pipeline for this project.
 - Do not skip tests.
 - Do not report SUCCESS when validation fails.
 - If blocked, return BLOCKED with clear reason and next options.
+- Keep all changes inside current agent workspace `projects/` scope unless user explicitly authorizes otherwise.
 
 ## Final report template
 

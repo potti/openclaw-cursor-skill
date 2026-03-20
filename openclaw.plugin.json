@@ -53,7 +53,7 @@
         "additionalProperties": {
           "type": "string"
         },
-        "description": "Project name to path mapping"
+        "description": "Optional project alias to path mapping. If omitted, plugin defaults to `workspace` -> <current-agent-workspace>/projects"
       },
       "allowAbsoluteProjectPath": {
         "type": "boolean",

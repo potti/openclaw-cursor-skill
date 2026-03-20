@@ -6,7 +6,7 @@ import { formatRunResult } from "./formatter.js";
 import { ensureShutdownHook, setMaxConcurrent } from "./process-registry.js";
 import { createCursorAgentTool } from "./tool.js";
 import { resolveAgentBinary } from "./resolve-binary.js";
-import { resolveProjectPath } from "./project-path.js";
+import { buildEffectiveProjects, resolveProjectPath } from "./project-path.js";
 import { decideExecutionPolicy } from "./policy.js";
 import { SessionStore } from "./session-store.js";
 import type { CursorAgentConfig, ParsedCommand, ResolvedBinary } from "./types.js";
@@ -195,7 +195,7 @@ export default {
     const projectNames = Object.keys(projects);
     const projectListStr = projectNames.length > 0
       ? `Available projects: ${projectNames.join(", ")}`
-      : "No pre-configured projects. Enable allowAbsoluteProjectPath to use full paths";
+      : "No pre-configured projects. Uses default project key `workspace` -> <agent-workspace>/projects";
 
     // ── Path 1: /cursor command (explicit invocation, bypasses PI Agent) ──
     api.registerCommand({
@@ -211,14 +211,22 @@ export default {
           return { text: parsed.error };
         }
 
+        const effectiveProjects = buildEffectiveProjects(
+          projects,
+          ctx.workspaceDir ?? ctx.agentDir,
+        );
         const resolvedProject = resolveProjectPath(
           parsed.project,
-          projects,
+          effectiveProjects,
           cfg.allowAbsoluteProjectPath ?? false,
         );
         if (!resolvedProject) {
+          const effectiveProjectNames = Object.keys(effectiveProjects);
+          const effectiveProjectListStr = effectiveProjectNames.length > 0
+            ? `Available projects: ${effectiveProjectNames.join(", ")}`
+            : projectListStr;
           return {
-            text: `Project not found: ${parsed.project}\n${projectListStr}`,
+            text: `Project not found: ${parsed.project}\n${effectiveProjectListStr}`,
           };
         }
 
@@ -268,7 +276,7 @@ export default {
     });
 
     // ── Path 2: Agent Tool (PI Agent fallback invocation) ──
-    if (cfg.enableAgentTool !== false && projectNames.length > 0) {
+    if (cfg.enableAgentTool !== false) {
       api.registerTool(
         createCursorAgentTool({ agentPath, resolvedBinary, projects, cfg }),
         { name: "cursor_agent", optional: true },

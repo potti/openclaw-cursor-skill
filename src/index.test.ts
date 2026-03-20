@@ -260,10 +260,13 @@ describe("plugin.register", () => {
     expect(api.registerTool).not.toHaveBeenCalled();
   });
 
-  it("does not register Agent Tool with no projects", () => {
+  it("registers Agent Tool with no projects using workspace fallback", () => {
     api.pluginConfig.projects = {};
     plugin.register(api);
-    expect(api.registerTool).not.toHaveBeenCalled();
+    expect(api.registerTool).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({ name: "cursor_agent", optional: true }),
+    );
   });
 
   it("does not register when agentPath not configured and detection fails", () => {
@@ -320,6 +323,21 @@ describe("plugin.register", () => {
       const handler = api.registerCommand.mock.calls[0]![0].handler;
       const result = await handler({ args: "nonexistent do something" });
       expect(result.text).toContain("Project not found");
+    });
+
+    it("uses workspace/projects fallback when projects config is empty", async () => {
+      api.pluginConfig.projects = {};
+      plugin.register(api);
+      const handler = api.registerCommand.mock.calls[0]![0].handler;
+
+      await handler({
+        args: "workspace analyze code",
+        workspaceDir: "/agent/workspace",
+      });
+
+      expect(runCursorAgent).toHaveBeenCalledWith(expect.objectContaining({
+        projectPath: "/agent/workspace/projects",
+      }));
     });
   });
 });

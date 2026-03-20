@@ -1,4 +1,4 @@
-# Cursor Agent — OpenClaw Plugin
+# OpenClaw Cursor Skill
 
 Invoke local Cursor Agent CLI from OpenClaw, with policy-controlled plan-first delivery flow.
 
@@ -8,7 +8,7 @@ English | [中文](README_CN.md)
 
 ## Overview
 
-`cursor-agent` is an OpenClaw Gateway plugin that bridges chat tasks to local Cursor Agent CLI execution.
+`OpenClaw Cursor Skill` is an OpenClaw Gateway plugin that bridges chat tasks to local Cursor Agent CLI execution.
 
 It provides:
 
@@ -61,13 +61,22 @@ macOS / Linux:
 curl https://cursor.com/install -fsSL | bash
 ```
 
+If `agent` is not found after install, add common binary paths to your shell profile:
+
+```bash
+echo 'export PATH="$HOME/.cursor/bin:$HOME/.local/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
 Windows PowerShell:
 
 ```powershell
 irm https://cursor.com/install | iex
 ```
 
-Verify:
+If `agent` is not found in a new PowerShell session, reopen terminal first, then verify.
+
+Verify installation:
 
 ```bash
 agent --version
@@ -79,17 +88,27 @@ agent --version
 agent login
 ```
 
-or set `CURSOR_API_KEY`.
+Or set `CURSOR_API_KEY` for non-interactive environments:
+
+```bash
+export CURSOR_API_KEY="your-api-key"
+```
+
+Quick sanity check before using this plugin:
+
+```bash
+agent -p "Reply with: CLI ready" --mode ask
+```
 
 ### 3) Load Plugin into OpenClaw
 
-Source path mode:
+Source path mode (set this to the real plugin directory on your OpenClaw host):
 
 ```json
 {
   "plugins": {
     "load": {
-      "paths": ["/path/to/cursor-agent"]
+      "paths": ["/workspace/plugins/openclaw-cursor-skill"]
     }
   }
 }
@@ -113,13 +132,12 @@ openclaw plugins install cursor-agent-0.1.0.tgz
       "cursor-agent": {
         "enabled": true,
         "config": {
-          "projects": {
-            "my-project": "/abs/path/to/my-project"
-          },
           "defaultTimeoutSec": 600,
           "noOutputTimeoutSec": 120,
           "enableMcp": true,
           "enableAgentTool": true,
+          "allowAbsoluteProjectPath": false,
+          "requireMappedProjectForAgent": true,
           "enforcePlanBeforeDevelopment": true
         }
       }
@@ -127,6 +145,24 @@ openclaw plugins install cursor-agent-0.1.0.tgz
   }
 }
 ```
+
+Default project scope (no `projects` config needed):
+
+- The plugin auto-infers project key `workspace` -> `<current-agent-workspace>/projects`.
+- This keeps each agent scoped to its own workspace root by default.
+
+Optional override (`projects`) is only needed when you want custom aliases:
+
+```json
+{
+  "projects": {
+    "backend": "/workspace-agent-a/projects/backend",
+    "manager": "/workspace-agent-a/projects/manager"
+  }
+}
+```
+
+If you need arbitrary absolute paths, set `allowAbsoluteProjectPath: true` (less strict).
 
 ---
 
@@ -149,10 +185,10 @@ Options:
 Examples:
 
 ```bash
-/cursor my-project --mode ask explain auth architecture
-/cursor my-project --mode plan design cache strategy
-/cursor my-project --mode agent implement auth token refresh
-/cursor my-project --reset-plan-gate
+/cursor workspace --mode ask explain current project architecture
+/cursor workspace --mode plan design cache strategy
+/cursor workspace --mode agent implement auth token refresh
+/cursor workspace --reset-plan-gate
 ```
 
 ---

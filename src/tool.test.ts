@@ -122,6 +122,22 @@ describe("createCursorAgentTool", () => {
     }));
   });
 
+  it("uses workspace/projects fallback when projects config is empty", async () => {
+    runCursorAgentMock.mockResolvedValue(makeRunResult());
+
+    const factory = createCursorAgentTool({
+      agentPath,
+      projects: {},
+      cfg,
+    });
+    const tool = factory({ workspaceDir: "/agent/workspace" });
+    await tool.execute("call-1", { project: "workspace", prompt: "test" });
+
+    expect(runCursorAgentMock).toHaveBeenCalledWith(expect.objectContaining({
+      projectPath: "/agent/workspace/projects",
+    }));
+  });
+
   it("defaults to agent mode for automation", async () => {
     runCursorAgentMock.mockResolvedValue(makeRunResult());
 

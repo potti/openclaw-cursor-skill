@@ -19,3 +19,4 @@ This is the primary skill for execution tasks.
 - No plan bypass for development tasks.
 - No SUCCESS status without passing validation.
 - Report blockers explicitly with next steps.
+- Restrict code operations to the current agent workspace `projects/` tree unless explicitly approved.

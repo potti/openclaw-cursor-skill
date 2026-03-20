@@ -1,6 +1,20 @@
 import { existsSync } from "node:fs";
-import { isAbsolute } from "node:path";
+import { isAbsolute, resolve } from "node:path";
 import type { ResolvedProjectPath } from "./types.js";
+
+export function buildEffectiveProjects(
+  configuredProjects: Record<string, string>,
+  workspaceDir?: string,
+): Record<string, string> {
+  if (Object.keys(configuredProjects).length > 0) {
+    return configuredProjects;
+  }
+  if (!workspaceDir?.trim()) {
+    return configuredProjects;
+  }
+  // Default safety boundary: current agent workspace/projects
+  return { workspace: resolve(workspaceDir, "projects") };
+}
 
 export function resolveProjectPath(
   projectKey: string,
