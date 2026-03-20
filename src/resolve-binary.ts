@@ -5,8 +5,9 @@ import type { ResolvedBinary } from "./types.js";
 const VERSION_PATTERN = /^\d{4}\.\d{1,2}\.\d{1,2}-[a-f0-9]+$/;
 
 /**
- * 将版本目录名（如 "2026.2.27-e7d2ef6"）转为可排序的数值（如 20260227）。
- * 与 cursor-agent.ps1 中的 Parse-VersionString 逻辑保持一致。
+ * Converts a version folder name (for example "2026.2.27-e7d2ef6")
+ * into a sortable number (for example 20260227).
+ * This matches Parse-VersionString logic in cursor-agent.ps1.
  */
 function versionToNum(name: string): number {
   const datePart = name.split("-")[0]!;
@@ -14,14 +15,14 @@ function versionToNum(name: string): number {
   return parseInt(`${year}${month!.padStart(2, "0")}${day!.padStart(2, "0")}`, 10);
 }
 
-/** 平台对应的 node 可执行文件名 */
+/** Returns the platform-specific Node executable name. */
 function nodeBinName(): string {
   return process.platform === "win32" ? "node.exe" : "node";
 }
 
 /**
- * 在 baseDir 下查找 node 可执行文件 + index.js。
- * 对应 cursor-agent.ps1 中 "Are we somehow in the same dir as the script?" 分支。
+ * Probes a directory for node executable + index.js.
+ * Corresponds to the "same dir as the script" path in cursor-agent.ps1.
  */
 function probeDir(dir: string): ResolvedBinary | null {
   const nodeBin = join(dir, nodeBinName());
@@ -33,8 +34,8 @@ function probeDir(dir: string): ResolvedBinary | null {
 }
 
 /**
- * 扫描 baseDir/versions/ 下所有版本目录，取最新版本中的 node + index.js。
- * 对应 cursor-agent.ps1 中 "Find the latest version" 分支。
+ * Scans baseDir/versions/ and picks node + index.js from the latest version.
+ * Corresponds to the "Find the latest version" path in cursor-agent.ps1.
  */
 function probeVersions(baseDir: string): ResolvedBinary | null {
   const versionsDir = join(baseDir, "versions");
@@ -59,12 +60,12 @@ function probeVersions(baseDir: string): ResolvedBinary | null {
 }
 
 /**
- * 从 agentPath（.cmd / shell script / 任意路径）解析出底层的 node + index.js。
+ * Resolves underlying node + index.js from agentPath (.cmd / shell script / any path).
  *
- * 解析策略（复刻 cursor-agent.ps1 的逻辑，跨平台通用）：
- * 1. agentPath 所在目录直接有 node + index.js → 使用
- * 2. agentPath 所在目录有 versions/ 子目录 → 取最新版本
- * 3. 解析失败返回 null，调用方回退到原始 spawn 方式
+ * Resolution strategy (mirrors cursor-agent.ps1, cross-platform):
+ * 1. If agentPath directory directly contains node + index.js, use it.
+ * 2. If agentPath directory contains versions/, use the latest version.
+ * 3. If unresolved, return null and let caller fall back to direct spawn.
  */
 export function resolveAgentBinary(agentPath: string): ResolvedBinary | null {
   const baseDir = dirname(resolve(agentPath));

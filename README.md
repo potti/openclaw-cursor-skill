@@ -2,7 +2,7 @@
 
 Invoke local Cursor Agent CLI from OpenClaw, with policy-controlled plan-first delivery flow.
 
-English | [中文](README_CN.md)
+English | [Chinese](README_CN.md)
 
 ---
 
@@ -138,7 +138,8 @@ openclaw plugins install cursor-agent-0.1.0.tgz
           "enableAgentTool": true,
           "allowAbsoluteProjectPath": false,
           "requireMappedProjectForAgent": true,
-          "enforcePlanBeforeDevelopment": true
+          "enforcePlanBeforeDevelopment": true,
+          "verboseLogs": false
         }
       }
     }
@@ -205,6 +206,23 @@ For delivery tasks, final response should include:
 
 ---
 
+## Logging and Troubleshooting
+
+This plugin emits runtime logs via `console.log` / `console.warn` / `console.error`.
+In OpenClaw deployments, these logs are captured by the default gateway log output.
+
+Set `verboseLogs: true` to enable detailed lifecycle logs. Keep `verboseLogs: false` for normal operation; only warnings/errors will be emitted.
+
+Use logs to locate where execution stopped:
+
+- command/tool request received (resolved project, requested mode)
+- policy downgrade reason (`ask/plan/agent` transitions)
+- process spawn details (run id, pid, timeout settings)
+- timeout / abort / force-kill escalation
+- final completion or classified failure reason
+
+---
+
 ## Architecture
 
 ```text
@@ -235,6 +253,36 @@ npm run dev
 npm run build
 npm test
 ```
+
+---
+
+## Upgrade Plugin
+
+### Source Path Mode (development)
+
+If OpenClaw loads this plugin from `plugins.load.paths`, update flow is:
+
+```bash
+cd /path/to/openclaw-cursor-skill
+git pull
+npm run build
+```
+
+Then restart OpenClaw Gateway (or reload plugins if your deployment supports hot reload).
+
+### tgz Package Mode (release)
+
+If plugin was installed via `.tgz`, update flow is:
+
+```bash
+cd /path/to/openclaw-cursor-skill
+npm version patch
+npm run build
+npm pack
+openclaw plugins install cursor-agent-<new-version>.tgz
+```
+
+Then restart OpenClaw Gateway (or reload plugins).
 
 ---
 

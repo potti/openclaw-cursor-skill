@@ -13,6 +13,8 @@ import type {
   CollectedEvent,
 } from "./types.js";
 
+const LOG_PREFIX = "[cursor-agent]";
+
 function classifyError(error: string): "timeout_total" | "timeout_no_output" | "aborted" | "spawn_error" | "stderr_error" | "unknown" {
   if (error.startsWith("total timeout")) return "timeout_total";
   if (error.startsWith("no output timeout")) return "timeout_no_output";
@@ -22,14 +24,14 @@ function classifyError(error: string): "timeout_total" | "timeout_no_output" | "
   return "unknown";
 }
 
-/** Build CLI command and arguments (跨平台统一) */
+/** Build CLI command and arguments (cross-platform) */
 function buildCommand(opts: RunOptions): { cmd: string; args: string[]; shell: boolean } {
   const resolved = opts.resolvedBinary;
 
   const cliArgs: string[] = [];
 
   if (resolved) {
-    // 直接调用 node，entryScript 作为第一个参数
+    // Invoke node directly and pass entryScript as the first argument.
     cliArgs.push(resolved.entryScript);
   }
 
@@ -60,11 +62,11 @@ function buildCommand(opts: RunOptions): { cmd: string; args: string[]; shell: b
   cliArgs.push(opts.prompt);
 
   if (resolved) {
-    // 直接调用 node 可执行文件，不需要 shell
+    // Direct node invocation does not require shell mode.
     return { cmd: resolved.nodeBin, args: cliArgs, shell: false };
   }
 
-  // 回退：直接调用 agentPath（兼容未来独立 agent.exe 等场景）
+  // Fallback: invoke agentPath directly (compatible with standalone agent binaries).
   const needsShell =
     process.platform === "win32" &&
     /\.(cmd|bat)$/i.test(opts.agentPath);
@@ -74,7 +76,14 @@ function buildCommand(opts: RunOptions): { cmd: string; args: string[]; shell: b
 
 /** Execute Cursor Agent CLI and collect the full event stream */
 export async function runCursorAgent(opts: RunOptions): Promise<RunResult> {
+  const info = (message: string): void => {
+    if (opts.verboseLogs) {
+      console.log(message);
+    }
+  };
+
   if (registry.isFull()) {
+    console.warn(`${LOG_PREFIX} run rejected: concurrency full (${registry.getActiveCount()})`);
     return {
       success: false,
       resultText: `Concurrency limit reached (${registry.getActiveCount()}), please try again later`,
@@ -88,6 +97,11 @@ export async function runCursorAgent(opts: RunOptions): Promise<RunResult> {
   const runId = opts.runId ?? randomUUID();
   const startTime = Date.now();
   const { cmd, args, shell } = buildCommand(opts);
+  info(
+    `${LOG_PREFIX} run start id=${runId} mode=${opts.mode} project=${opts.projectPath} ` +
+    `timeout=${opts.timeoutSec}s noOutputTimeout=${opts.noOutputTimeoutSec}s shell=${shell} ` +
+    `promptLen=${opts.prompt.length}`,
+  );
 
   const isUnix = process.platform !== "win32";
   const proc = spawn(cmd, args, {
@@ -98,6 +112,7 @@ export async function runCursorAgent(opts: RunOptions): Promise<RunResult> {
     detached: isUnix,
   });
   if (isUnix) proc.unref();
+  info(`${LOG_PREFIX} run spawned id=${runId} pid=${proc.pid ?? "unknown"} cmd=${cmd}`);
 
   registry.register(runId, { proc, projectPath: opts.projectPath, startTime });
 
@@ -114,12 +129,14 @@ export async function runCursorAgent(opts: RunOptions): Promise<RunResult> {
 
   const terminateProcess = () => {
     if (proc.exitCode !== null || proc.killed) return;
+    console.warn(`${LOG_PREFIX} terminating process id=${runId} pid=${proc.pid ?? "unknown"}`);
     registry.killWithGrace(proc);
   };
 
   const totalTimeout = setTimeout(() => {
     if (!completed) {
       error = `total timeout (${opts.timeoutSec}s)`;
+      console.warn(`${LOG_PREFIX} total timeout id=${runId} after=${opts.timeoutSec}s`);
       terminateProcess();
     }
   }, opts.timeoutSec * 1000);
@@ -128,6 +145,7 @@ export async function runCursorAgent(opts: RunOptions): Promise<RunResult> {
     if (Date.now() - lastOutputTime > opts.noOutputTimeoutSec * 1000) {
       if (!completed) {
         error = `no output timeout (${opts.noOutputTimeoutSec}s)`;
+        console.warn(`${LOG_PREFIX} no-output timeout id=${runId} after=${opts.noOutputTimeoutSec}s`);
         terminateProcess();
       }
     }
@@ -136,6 +154,7 @@ export async function runCursorAgent(opts: RunOptions): Promise<RunResult> {
   const onAbort = () => {
     if (!completed) {
       error = "aborted";
+      console.warn(`${LOG_PREFIX} run aborted id=${runId}`);
       terminateProcess();
     }
   };
@@ -239,6 +258,15 @@ export async function runCursorAgent(opts: RunOptions): Promise<RunResult> {
       }
       if (error) {
         errorClass = classifyError(error);
+        console.error(
+          `${LOG_PREFIX} run failed id=${runId} class=${errorClass} ` +
+          `durationMs=${durationMs} exitCode=${proc.exitCode} error=${error}`,
+        );
+      } else {
+        info(
+          `${LOG_PREFIX} run complete id=${runId} success=${completed} durationMs=${durationMs} ` +
+          `toolCalls=${toolCallCount} sessionId=${sessionId ?? "none"} exitCode=${proc.exitCode}`,
+        );
       }
 
       resolve({
@@ -257,6 +285,7 @@ export async function runCursorAgent(opts: RunOptions): Promise<RunResult> {
     proc.on("close", cleanup);
     proc.on("error", (err) => {
       error = err.message;
+      console.error(`${LOG_PREFIX} spawn/process error id=${runId} error=${err.message}`);
       cleanup();
     });
   });

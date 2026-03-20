@@ -9,6 +9,7 @@ import { resolveAgentBinary } from "./resolve-binary.js";
 import { buildEffectiveProjects, resolveProjectPath } from "./project-path.js";
 import { decideExecutionPolicy } from "./policy.js";
 import { SessionStore } from "./session-store.js";
+import { logInfo, setVerboseLogs } from "./logger.js";
 import type { CursorAgentConfig, ParsedCommand, ResolvedBinary } from "./types.js";
 
 const PLUGIN_ID = "cursor-agent";
@@ -156,7 +157,8 @@ export default {
 
   register(api: any) {
     const cfg: CursorAgentConfig = api.pluginConfig ?? {};
-    console.log(`[${PLUGIN_ID}] register start`);
+    setVerboseLogs(cfg.verboseLogs);
+    logInfo(`[${PLUGIN_ID}] register start`);
 
     const agentPath = cfg.agentPath || detectAgentPath();
     if (!agentPath) {
@@ -164,12 +166,12 @@ export default {
       return;
     }
 
-    // 解析底层 node + index.js，优先使用配置，其次自动解析
+    // Resolve underlying node + index.js; prefer explicit config, then auto-detect.
     let resolvedBinary: ResolvedBinary | undefined;
     if (cfg.agentNodeBin && cfg.agentEntryScript) {
       if (existsSync(cfg.agentNodeBin) && existsSync(cfg.agentEntryScript)) {
         resolvedBinary = { nodeBin: cfg.agentNodeBin, entryScript: cfg.agentEntryScript };
-        console.log(`[${PLUGIN_ID}] using configured binary: ${cfg.agentNodeBin}`);
+        logInfo(`[${PLUGIN_ID}] using configured binary: ${cfg.agentNodeBin}`);
       } else {
         console.warn(`[${PLUGIN_ID}] configured agentNodeBin/agentEntryScript not found, falling back to auto-resolve`);
       }
@@ -177,9 +179,9 @@ export default {
     if (!resolvedBinary) {
       resolvedBinary = resolveAgentBinary(agentPath) ?? undefined;
       if (resolvedBinary) {
-        console.log(`[${PLUGIN_ID}] resolved binary: ${resolvedBinary.nodeBin} ${resolvedBinary.entryScript}`);
+        logInfo(`[${PLUGIN_ID}] resolved binary: ${resolvedBinary.nodeBin} ${resolvedBinary.entryScript}`);
       } else {
-        console.log(`[${PLUGIN_ID}] binary resolve failed, will invoke agentPath directly: ${agentPath}`);
+        logInfo(`[${PLUGIN_ID}] binary resolve failed, will invoke agentPath directly: ${agentPath}`);
       }
     }
 
@@ -229,9 +231,14 @@ export default {
             text: `Project not found: ${parsed.project}\n${effectiveProjectListStr}`,
           };
         }
+        logInfo(
+          `[${PLUGIN_ID}] /cursor request project=${parsed.project} resolved=${resolvedProject.path} ` +
+          `mode=${parsed.mode} workspace=${ctx.workspaceDir ?? "unknown"}`,
+        );
 
         if (parsed.resetPlanGate) {
           sessionStore.clearApproval(resolvedProject.path);
+          logInfo(`[${PLUGIN_ID}] plan gate reset project=${resolvedProject.path}`);
           if (!parsed.prompt) {
             return { text: `Plan-first gate reset for project: ${parsed.project}` };
           }
@@ -244,6 +251,11 @@ export default {
           matchedMappedProject: resolvedProject.matchedMapping,
           projectPlanApproved: sessionStore.getApproval(resolvedProject.path),
         });
+        if (policy.downgraded && policy.reason) {
+          logInfo(
+            `[${PLUGIN_ID}] policy downgraded source=command from=${parsed.mode} to=${policy.mode} reason=${policy.reason}`,
+          );
+        }
 
         const result = await runCursorAgent({
           agentPath,
@@ -258,12 +270,14 @@ export default {
           prefixArgs: cfg.prefixArgs,
           enableTrust: cfg.enableTrust ?? false,
           mcpApprovalMode: cfg.mcpApprovalMode ?? "approve",
+          verboseLogs: cfg.verboseLogs,
           continueSession: parsed.continueSession,
           resumeSessionId: parsed.resumeSessionId,
         });
 
         if (result.success && policy.grantProjectApprovalOnSuccess) {
           sessionStore.setApproval(resolvedProject.path);
+          logInfo(`[${PLUGIN_ID}] plan gate approved project=${resolvedProject.path}`);
         }
 
         const messages = formatRunResult(result);
@@ -281,10 +295,10 @@ export default {
         createCursorAgentTool({ agentPath, resolvedBinary, projects, cfg }),
         { name: "cursor_agent", optional: true },
       );
-      console.log(`[${PLUGIN_ID}] registered cursor_agent tool`);
+      logInfo(`[${PLUGIN_ID}] registered cursor_agent tool`);
     }
 
-    console.log(`[${PLUGIN_ID}] registered /cursor command (agent: ${agentPath}, projects: ${projectNames.join(", ") || "none"})`);
+    logInfo(`[${PLUGIN_ID}] registered /cursor command (agent: ${agentPath}, projects: ${projectNames.join(", ") || "none"})`);
   },
 };
 

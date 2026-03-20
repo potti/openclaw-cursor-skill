@@ -41,7 +41,11 @@
       },
       "mcpApprovalMode": {
         "type": "string",
-        "enum": ["approve", "force", "off"],
+        "enum": [
+          "approve",
+          "force",
+          "off"
+        ],
         "description": "MCP approval mode: approve (default), force (approve + --force), off (disable MCP approval args)"
       },
       "enableTrust": {
@@ -63,7 +67,11 @@
         "type": "array",
         "items": {
           "type": "string",
-          "enum": ["agent", "ask", "plan"]
+          "enum": [
+            "agent",
+            "ask",
+            "plan"
+          ]
         },
         "description": "Allowed execution modes across command/tool policy"
       },
@@ -81,17 +89,25 @@
       },
       "writableTaskPatterns": {
         "type": "array",
-        "items": { "type": "string" },
+        "items": {
+          "type": "string"
+        },
         "description": "Agent-mode prompt allowlist keywords"
       },
       "denyTaskPatterns": {
         "type": "array",
-        "items": { "type": "string" },
+        "items": {
+          "type": "string"
+        },
         "description": "Agent-mode prompt denylist keywords"
       },
       "toolDefaultMode": {
         "type": "string",
-        "enum": ["agent", "ask", "plan"],
+        "enum": [
+          "agent",
+          "ask",
+          "plan"
+        ],
         "description": "Default mode used by cursor_agent tool when mode is omitted (default agent)"
       },
       "commandRequireAuth": {
@@ -100,7 +116,9 @@
       },
       "prefixArgs": {
         "type": "array",
-        "items": { "type": "string" },
+        "items": {
+          "type": "string"
+        },
         "description": "Extra CLI args inserted before standard args (advanced/testing)"
       },
       "sessionStatePath": {
@@ -122,6 +140,10 @@
       "enforcePlanBeforeDevelopment": {
         "type": "boolean",
         "description": "Force development-class tasks to run plan mode first until project is plan-approved, default true"
+      },
+      "verboseLogs": {
+        "type": "boolean",
+        "description": "Enable detailed runtime logs (console.log/info) for troubleshooting, default false"
       },
       "maxConcurrent": {
         "type": "integer",
@@ -175,6 +197,10 @@
     "enforcePlanBeforeDevelopment": {
       "label": "Enforce Plan Before Development",
       "help": "When enabled, development-class tasks must complete plan phase before agent execution"
+    },
+    "verboseLogs": {
+      "label": "Verbose Logs",
+      "help": "Enable detailed plugin runtime logs for troubleshooting. Keep off in normal operation"
     },
     "enableTrust": {
       "label": "Enable --trust",
