@@ -154,6 +154,43 @@ Add to `~/.openclaw/openclaw.json`, then restart Gateway:
 
 ## Minimal Configuration
 
+All config fields have built-in defaults declared in `openclaw.plugin.json` (`configSchema.properties.*.default`).
+After installing the plugin, the minimum required entry in `~/.openclaw/openclaw.json` is just:
+
+```json
+{
+  "plugins": {
+    "entries": {
+      "cursor-agent": {
+        "enabled": true
+      }
+    }
+  }
+}
+```
+
+OpenClaw will automatically apply the following defaults without any explicit config:
+
+| Field | Default |
+|---|---|
+| `defaultTimeoutSec` | `600` |
+| `noOutputTimeoutSec` | `120` |
+| `enableMcp` | `true` |
+| `mcpApprovalMode` | `"approve"` |
+| `enableAgentTool` | `true` |
+| `enableTrust` | `false` |
+| `allowAbsoluteProjectPath` | `false` |
+| `allowAgentModeForCommand` | `false` |
+| `allowAgentModeForTool` | `true` |
+| `requireMappedProjectForAgent` | `true` |
+| `enforcePlanBeforeDevelopment` | `true` |
+| `verboseLogs` | `false` |
+| `maxConcurrent` | `3` |
+| `commandRequireAuth` | `true` |
+| `toolDefaultMode` | `"agent"` |
+
+Override only the fields you want to change. For example, to enable verbose logs for troubleshooting:
+
 ```json
 {
   "plugins": {
@@ -161,14 +198,7 @@ Add to `~/.openclaw/openclaw.json`, then restart Gateway:
       "cursor-agent": {
         "enabled": true,
         "config": {
-          "defaultTimeoutSec": 600,
-          "noOutputTimeoutSec": 120,
-          "enableMcp": true,
-          "enableAgentTool": true,
-          "allowAbsoluteProjectPath": false,
-          "requireMappedProjectForAgent": true,
-          "enforcePlanBeforeDevelopment": true,
-          "verboseLogs": false
+          "verboseLogs": true
         }
       }
     }
@@ -181,18 +211,24 @@ Default project scope (no `projects` config needed):
 - The plugin auto-infers project key `workspace` -> `<current-agent-workspace>/projects`.
 - This keeps each agent scoped to its own workspace root by default.
 
-Optional override (`projects`) is only needed when you want custom aliases:
+Override `projects` only when you need custom path aliases:
 
 ```json
 {
-  "projects": {
-    "backend": "/workspace-agent-a/projects/backend",
-    "manager": "/workspace-agent-a/projects/manager"
+  "plugins": {
+    "entries": {
+      "cursor-agent": {
+        "enabled": true,
+        "config": {
+          "projects": {
+            "backend": "/workspace/projects/backend"
+          }
+        }
+      }
+    }
   }
 }
 ```
-
-If you need arbitrary absolute paths, set `allowAbsoluteProjectPath: true` (less strict).
 
 ---
 

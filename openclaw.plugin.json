@@ -23,12 +23,14 @@
         "type": "integer",
         "minimum": 30,
         "maximum": 1800,
+        "default": 600,
         "description": "Default timeout in seconds, default 600"
       },
       "noOutputTimeoutSec": {
         "type": "integer",
         "minimum": 10,
         "maximum": 600,
+        "default": 120,
         "description": "No-output timeout in seconds; process is considered hung if no output for this duration, default 120"
       },
       "model": {
@@ -37,6 +39,7 @@
       },
       "enableMcp": {
         "type": "boolean",
+        "default": true,
         "description": "Whether to enable MCP servers (--approve-mcps), default true"
       },
       "mcpApprovalMode": {
@@ -46,10 +49,12 @@
           "force",
           "off"
         ],
+        "default": "approve",
         "description": "MCP approval mode: approve (default), force (approve + --force), off (disable MCP approval args)"
       },
       "enableTrust": {
         "type": "boolean",
+        "default": false,
         "description": "Whether to pass --trust to Cursor Agent CLI, default false"
       },
       "projects": {
@@ -61,6 +66,7 @@
       },
       "allowAbsoluteProjectPath": {
         "type": "boolean",
+        "default": false,
         "description": "Allow absolute path project input outside projects mapping, default false"
       },
       "allowedModes": {
@@ -77,14 +83,17 @@
       },
       "allowAgentModeForCommand": {
         "type": "boolean",
+        "default": false,
         "description": "Allow /cursor command to execute agent mode, default false"
       },
       "allowAgentModeForTool": {
         "type": "boolean",
+        "default": true,
         "description": "Allow cursor_agent tool to execute agent mode, default true"
       },
       "requireMappedProjectForAgent": {
         "type": "boolean",
+        "default": true,
         "description": "Require mapped project for agent mode execution, default true"
       },
       "writableTaskPatterns": {
@@ -108,10 +117,12 @@
           "ask",
           "plan"
         ],
+        "default": "agent",
         "description": "Default mode used by cursor_agent tool when mode is omitted (default agent)"
       },
       "commandRequireAuth": {
         "type": "boolean",
+        "default": true,
         "description": "Whether /cursor command requires auth, default true"
       },
       "prefixArgs": {
@@ -129,30 +140,36 @@
         "type": "integer",
         "minimum": 60,
         "maximum": 2592000,
+        "default": 604800,
         "description": "Session persistence TTL in seconds, default 604800"
       },
       "maxSessionEntries": {
         "type": "integer",
         "minimum": 1,
         "maximum": 5000,
+        "default": 200,
         "description": "Maximum persisted project-session entries, default 200"
       },
       "enforcePlanBeforeDevelopment": {
         "type": "boolean",
+        "default": true,
         "description": "Force development-class tasks to run plan mode first until project is plan-approved, default true"
       },
       "verboseLogs": {
         "type": "boolean",
+        "default": false,
         "description": "Enable detailed runtime logs (console.log/info) for troubleshooting, default false"
       },
       "maxConcurrent": {
         "type": "integer",
         "minimum": 1,
         "maximum": 10,
+        "default": 3,
         "description": "Maximum concurrent Cursor CLI processes, default 3"
       },
       "enableAgentTool": {
         "type": "boolean",
+        "default": true,
         "description": "Whether to register Agent Tool for PI Agent auto-invocation (fallback mechanism), default true"
       }
     }
