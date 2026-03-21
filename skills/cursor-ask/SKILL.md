@@ -32,15 +32,11 @@ Do **not** use this skill when the user wants changes made to files — use `cur
 
 ## Tool Call
 
-Call `cursor_agent` with `mode: ask`:
+Use the `cursor_agent` tool with:
 
-```
-cursor_agent(
-  project: "<project-name>",    // e.g. "workspace" or a configured project key
-  prompt:  "<specific question about the code>",
-  mode:    "ask"
-)
-```
+- `project`: `workspace` (or the configured project key, e.g. `my-api`)
+- `prompt`: a specific question about the code
+- `mode`: `ask`
 
 **`mode: ask` is read-only** — Cursor Agent will not modify any files.
 

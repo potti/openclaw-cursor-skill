@@ -44,15 +44,11 @@ The approval is scoped per-project and persists until the gateway restarts or `r
 
 ## Tool Call
 
-Call `cursor_agent` with `mode: plan`:
+Use the `cursor_agent` tool with:
 
-```
-cursor_agent(
-  project: "<project-name>",
-  prompt:  "<design or planning question>",
-  mode:    "plan"
-)
-```
+- `project`: `workspace` (or the configured project key)
+- `prompt`: a design or planning question
+- `mode`: `plan`
 
 **`mode: plan` does not modify files.** It produces a written plan, architecture proposal, or change outline.
 

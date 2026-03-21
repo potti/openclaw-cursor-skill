@@ -52,26 +52,20 @@ Plan complete. The project is now approved for development.
 Shall I proceed with the implementation now?
 ```
 
-**To reset the gate** (e.g., user wants to re-plan): pass `resetPlanGate: true`:
+**To reset the gate** (e.g., user wants to re-plan): use the `cursor_agent` tool with `resetPlanGate: true`:
 
-```
-cursor_agent(
-  project: "<project-name>",
-  prompt:  "<task>",
-  mode:    "agent",
-  resetPlanGate: true
-)
-```
+- `project`: `workspace`
+- `prompt`: the task description
+- `mode`: `agent`
+- `resetPlanGate`: `true`
 
 ## Tool Call
 
-```
-cursor_agent(
-  project:  "<project-name>",     // e.g. "workspace" or configured key
-  prompt:   "<implementation task>",
-  mode:     "agent"
-)
-```
+Use the `cursor_agent` tool with:
+
+- `project`: `workspace` (or the configured project key)
+- `prompt`: a specific implementation task
+- `mode`: `agent`
 
 ## Prompt Construction Guidelines
 
@@ -138,15 +132,20 @@ User: "The architecture changed, let's re-plan the auth feature."
 
 ## Multi-Step Tasks
 
-For complex tasks that span multiple areas, break the prompt into numbered steps and let Cursor Agent handle the sequence:
+For complex tasks that span multiple areas, break the prompt into numbered steps and let Cursor Agent handle the sequence.
 
-```
-cursor_agent(
-  project: "workspace",
-  prompt:  "1. Create the UserProfile model in src/models/userProfile.ts with fields: id, userId, bio, avatarUrl, createdAt.\n2. Add a ProfileRepository in src/repositories/profileRepository.ts with CRUD methods.\n3. Add API endpoints in src/routes/profile.ts: GET /users/:id/profile, PUT /users/:id/profile.\n4. Register the routes in src/app.ts.\n5. Write tests for all new endpoints in tests/profile.test.ts.",
-  mode: "agent"
-)
-```
+Use the `cursor_agent` tool with:
+
+- `project`: `workspace`
+- `mode`: `agent`
+- `prompt`:
+  ```
+  1. Create the UserProfile model in src/models/userProfile.ts with fields: id, userId, bio, avatarUrl, createdAt.
+  2. Add a ProfileRepository in src/repositories/profileRepository.ts with CRUD methods.
+  3. Add API endpoints in src/routes/profile.ts: GET /users/:id/profile, PUT /users/:id/profile.
+  4. Register the routes in src/app.ts.
+  5. Write tests for all new endpoints in tests/profile.test.ts.
+  ```
 
 ## Notes
 
