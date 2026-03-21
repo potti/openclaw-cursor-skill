@@ -3,6 +3,9 @@
   "name": "Cursor Agent",
   "description": "Plugin (not a Skill) — invoke local Cursor Agent CLI from OpenClaw with policy-controlled plan-first delivery. Install via: openclaw plugins install -l <dir>. Do not copy to ~/.openclaw/skills/.",
   "version": "0.1.0",
+  "skills": [
+    "./skills"
+  ],
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
