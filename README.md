@@ -1,14 +1,18 @@
-# OpenClaw Cursor Skill
+# OpenClaw Cursor Agent Plugin
 
 Invoke local Cursor Agent CLI from OpenClaw, with policy-controlled plan-first delivery flow.
 
 English | [Chinese](README_CN.md)
 
+> **This is an OpenClaw Plugin, not a Skill.**
+> Install it with `openclaw plugins install`, not by copying to `~/.openclaw/skills/`.
+> Installing to the skills folder will not register the `/cursor` command or `cursor_agent` tool.
+
 ---
 
 ## Overview
 
-`OpenClaw Cursor Skill` is an OpenClaw Gateway plugin that bridges chat tasks to local Cursor Agent CLI execution.
+`OpenClaw Cursor Agent Plugin` is an OpenClaw Gateway plugin that bridges chat tasks to local Cursor Agent CLI execution.
 
 It provides:
 
@@ -100,25 +104,50 @@ Quick sanity check before using this plugin:
 agent -p "Reply with: CLI ready" --mode ask
 ```
 
-### 3) Load Plugin into OpenClaw
+### 3) Install Plugin into OpenClaw
 
-Source path mode (set this to the real plugin directory on your OpenClaw host):
+> **Important:** This is a Plugin. Use `openclaw plugins install`, not `~/.openclaw/skills/`.
+> The skills directory is for `SKILL.md`-based skills only and will not register the `/cursor` command or `cursor_agent` tool.
+
+**Recommended: link install from local directory (no copy, easiest to update)**
+
+```bash
+# Build first
+cd /path/to/openclaw-cursor-skill
+npm ci && npm run build
+
+# Link-install into OpenClaw as a plugin
+openclaw plugins install -l /path/to/openclaw-cursor-skill
+
+# Restart Gateway
+openclaw gateway restart
+
+# Verify plugin is registered
+openclaw plugins list
+openclaw plugins inspect cursor-agent
+```
+
+**Alternative: tgz package install**
+
+```bash
+cd /path/to/openclaw-cursor-skill
+npm ci && npm run build && npm pack
+openclaw plugins install cursor-agent-0.1.0.tgz
+openclaw gateway restart
+```
+
+**Alternative: manual `plugins.load.paths` config** (if CLI install is unavailable)
+
+Add to `~/.openclaw/openclaw.json`, then restart Gateway:
 
 ```json
 {
   "plugins": {
     "load": {
-      "paths": ["/workspace/plugins/openclaw-cursor-skill"]
+      "paths": ["/path/to/openclaw-cursor-skill"]
     }
   }
 }
-```
-
-Package mode:
-
-```bash
-npm ci && npm run build && npm pack
-openclaw plugins install cursor-agent-0.1.0.tgz
 ```
 
 ---
@@ -258,31 +287,31 @@ npm test
 
 ## Upgrade Plugin
 
-### Source Path Mode (development)
+### Link install mode (recommended)
 
-If OpenClaw loads this plugin from `plugins.load.paths`, update flow is:
+If installed via `openclaw plugins install -l <dir>` or `plugins.load.paths`:
 
 ```bash
 cd /path/to/openclaw-cursor-skill
 git pull
+npm ci
 npm run build
+openclaw gateway restart
 ```
 
-Then restart OpenClaw Gateway (or reload plugins if your deployment supports hot reload).
+### tgz package mode
 
-### tgz Package Mode (release)
-
-If plugin was installed via `.tgz`, update flow is:
+If installed via `.tgz`:
 
 ```bash
 cd /path/to/openclaw-cursor-skill
-npm version patch
+git pull
+npm ci
 npm run build
 npm pack
 openclaw plugins install cursor-agent-<new-version>.tgz
+openclaw gateway restart
 ```
-
-Then restart OpenClaw Gateway (or reload plugins).
 
 ---
 
