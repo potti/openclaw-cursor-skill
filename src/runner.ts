@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { createInterface } from "node:readline";
 import { parseStreamLine, extractToolName, extractToolArgs, extractToolResult } from "./parser.js";
 import * as registry from "./process-registry.js";
+import { logger } from "./logger.js";
 import type {
   RunOptions,
   RunResult,
@@ -12,8 +13,6 @@ import type {
   SystemInitEvent,
   CollectedEvent,
 } from "./types.js";
-
-const LOG_PREFIX = "[cursor-agent]";
 
 function classifyError(error: string): "timeout_total" | "timeout_no_output" | "aborted" | "spawn_error" | "stderr_error" | "unknown" {
   if (error.startsWith("total timeout")) return "timeout_total";
@@ -76,14 +75,8 @@ function buildCommand(opts: RunOptions): { cmd: string; args: string[]; shell: b
 
 /** Execute Cursor Agent CLI and collect the full event stream */
 export async function runCursorAgent(opts: RunOptions): Promise<RunResult> {
-  const info = (message: string): void => {
-    if (opts.verboseLogs) {
-      console.log(message);
-    }
-  };
-
   if (registry.isFull()) {
-    console.warn(`${LOG_PREFIX} run rejected: concurrency full (${registry.getActiveCount()})`);
+    logger.warn(`run rejected: concurrency full (${registry.getActiveCount()})`);
     return {
       success: false,
       resultText: `Concurrency limit reached (${registry.getActiveCount()}), please try again later`,
@@ -97,8 +90,8 @@ export async function runCursorAgent(opts: RunOptions): Promise<RunResult> {
   const runId = opts.runId ?? randomUUID();
   const startTime = Date.now();
   const { cmd, args, shell } = buildCommand(opts);
-  info(
-    `${LOG_PREFIX} run start id=${runId} mode=${opts.mode} project=${opts.projectPath} ` +
+  logger.debug(
+    `run start id=${runId} mode=${opts.mode} project=${opts.projectPath} ` +
     `timeout=${opts.timeoutSec}s noOutputTimeout=${opts.noOutputTimeoutSec}s shell=${shell} ` +
     `promptLen=${opts.prompt.length}`,
   );
@@ -112,7 +105,7 @@ export async function runCursorAgent(opts: RunOptions): Promise<RunResult> {
     detached: isUnix,
   });
   if (isUnix) proc.unref();
-  info(`${LOG_PREFIX} run spawned id=${runId} pid=${proc.pid ?? "unknown"} cmd=${cmd}`);
+  logger.debug(`run spawned id=${runId} pid=${proc.pid ?? "unknown"} cmd=${cmd}`);
 
   registry.register(runId, { proc, projectPath: opts.projectPath, startTime });
 
@@ -129,14 +122,14 @@ export async function runCursorAgent(opts: RunOptions): Promise<RunResult> {
 
   const terminateProcess = () => {
     if (proc.exitCode !== null || proc.killed) return;
-    console.warn(`${LOG_PREFIX} terminating process id=${runId} pid=${proc.pid ?? "unknown"}`);
+    logger.warn(`terminating process id=${runId} pid=${proc.pid ?? "unknown"}`);
     registry.killWithGrace(proc);
   };
 
   const totalTimeout = setTimeout(() => {
     if (!completed) {
       error = `total timeout (${opts.timeoutSec}s)`;
-      console.warn(`${LOG_PREFIX} total timeout id=${runId} after=${opts.timeoutSec}s`);
+      logger.warn(`total timeout id=${runId} after=${opts.timeoutSec}s`);
       terminateProcess();
     }
   }, opts.timeoutSec * 1000);
@@ -145,7 +138,7 @@ export async function runCursorAgent(opts: RunOptions): Promise<RunResult> {
     if (Date.now() - lastOutputTime > opts.noOutputTimeoutSec * 1000) {
       if (!completed) {
         error = `no output timeout (${opts.noOutputTimeoutSec}s)`;
-        console.warn(`${LOG_PREFIX} no-output timeout id=${runId} after=${opts.noOutputTimeoutSec}s`);
+        logger.warn(`no-output timeout id=${runId} after=${opts.noOutputTimeoutSec}s`);
         terminateProcess();
       }
     }
@@ -154,7 +147,7 @@ export async function runCursorAgent(opts: RunOptions): Promise<RunResult> {
   const onAbort = () => {
     if (!completed) {
       error = "aborted";
-      console.warn(`${LOG_PREFIX} run aborted id=${runId}`);
+      logger.warn(`run aborted id=${runId}`);
       terminateProcess();
     }
   };
@@ -258,13 +251,13 @@ export async function runCursorAgent(opts: RunOptions): Promise<RunResult> {
       }
       if (error) {
         errorClass = classifyError(error);
-        console.error(
-          `${LOG_PREFIX} run failed id=${runId} class=${errorClass} ` +
+        logger.error(
+          `run failed id=${runId} class=${errorClass} ` +
           `durationMs=${durationMs} exitCode=${proc.exitCode} error=${error}`,
         );
       } else {
-        info(
-          `${LOG_PREFIX} run complete id=${runId} success=${completed} durationMs=${durationMs} ` +
+        logger.debug(
+          `run complete id=${runId} success=${completed} durationMs=${durationMs} ` +
           `toolCalls=${toolCallCount} sessionId=${sessionId ?? "none"} exitCode=${proc.exitCode}`,
         );
       }
@@ -285,7 +278,7 @@ export async function runCursorAgent(opts: RunOptions): Promise<RunResult> {
     proc.on("close", cleanup);
     proc.on("error", (err) => {
       error = err.message;
-      console.error(`${LOG_PREFIX} spawn/process error id=${runId} error=${err.message}`);
+      logger.error(`spawn/process error id=${runId} error=${err.message}`);
       cleanup();
     });
   });

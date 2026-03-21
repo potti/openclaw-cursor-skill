@@ -1,9 +1,8 @@
 import { spawn, type ChildProcess } from "node:child_process";
-import { isVerboseLogsEnabled, logInfo } from "./logger.js";
+import { logger } from "./logger.js";
 
 const DEFAULT_MAX_CONCURRENT = 3;
 const FORCE_KILL_DELAY_MS = 5000;
-const LOG_PREFIX = "[cursor-agent]";
 
 interface TrackedProcess {
   proc: ChildProcess;
@@ -17,17 +16,17 @@ let shutdownRegistered = false;
 
 export function setMaxConcurrent(value: number): void {
   maxConcurrent = Math.max(1, value);
-  logInfo(`${LOG_PREFIX} maxConcurrent set=${maxConcurrent}`);
+  logger.debug(`maxConcurrent set=${maxConcurrent}`);
 }
 
 export function register(id: string, entry: TrackedProcess): void {
   activeProcesses.set(id, entry);
-  logInfo(`${LOG_PREFIX} registry register id=${id} pid=${entry.proc.pid ?? "unknown"} active=${activeProcesses.size}`);
+  logger.debug(`registry register id=${id} pid=${entry.proc.pid ?? "unknown"} active=${activeProcesses.size}`);
 }
 
 export function unregister(id: string): void {
   activeProcesses.delete(id);
-  logInfo(`${LOG_PREFIX} registry unregister id=${id} active=${activeProcesses.size}`);
+  logger.debug(`registry unregister id=${id} active=${activeProcesses.size}`);
 }
 
 export function getActiveCount(): number {
@@ -43,7 +42,6 @@ export function gracefulKill(proc: ChildProcess): void {
   if (!proc.pid) return;
   try {
     if (process.platform === "win32") {
-      // Without /F: send a graceful close signal to the process tree.
       spawn("taskkill", ["/T", "/PID", String(proc.pid)], { stdio: "ignore" });
     } else {
       process.kill(-proc.pid, "SIGTERM");
@@ -69,13 +67,11 @@ export function forceKill(proc: ChildProcess): void {
 
 /** Two-phase termination: SIGTERM → wait → SIGKILL */
 export function killWithGrace(proc: ChildProcess): void {
-  if (isVerboseLogsEnabled()) {
-    console.warn(`${LOG_PREFIX} killWithGrace pid=${proc.pid ?? "unknown"}`);
-  }
+  logger.warn(`killWithGrace pid=${proc.pid ?? "unknown"}`);
   gracefulKill(proc);
   const timer = setTimeout(() => {
     if (proc.exitCode === null && !proc.killed) {
-      console.warn(`${LOG_PREFIX} forceKill escalation pid=${proc.pid ?? "unknown"}`);
+      logger.warn(`forceKill escalation pid=${proc.pid ?? "unknown"}`);
       forceKill(proc);
     }
   }, FORCE_KILL_DELAY_MS);
@@ -84,9 +80,7 @@ export function killWithGrace(proc: ChildProcess): void {
 
 /** Terminate all active processes */
 function shutdownAll(): void {
-  if (isVerboseLogsEnabled()) {
-    console.warn(`${LOG_PREFIX} shutdownAll active=${activeProcesses.size}`);
-  }
+  logger.warn(`shutdownAll active=${activeProcesses.size}`);
   for (const [id, entry] of activeProcesses) {
     killWithGrace(entry.proc);
     activeProcesses.delete(id);

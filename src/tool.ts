@@ -3,7 +3,7 @@ import { formatRunResult, extractModifiedFiles } from "./formatter.js";
 import { buildEffectiveProjects, resolveProjectPath } from "./project-path.js";
 import { decideExecutionPolicy } from "./policy.js";
 import { SessionStore } from "./session-store.js";
-import { logInfo } from "./logger.js";
+import { logger } from "./logger.js";
 import type { CursorAgentConfig, ResolvedBinary } from "./types.js";
 
 /**
@@ -139,13 +139,13 @@ export function createCursorAgentTool(params: {
         };
       }
       const projectPath = resolvedProject.path;
-      logInfo(
-        `[cursor-agent] tool request project=${project} resolved=${projectPath} ` +
+      logger.info(
+        `tool request project=${project} resolved=${projectPath} ` +
         `requestedMode=${requestedMode} workspace=${ctx.workspaceDir ?? "unknown"}`,
       );
       if (resetPlanGate) {
         sessionStore.clearApproval(projectPath);
-        logInfo(`[cursor-agent] tool plan gate reset project=${projectPath}`);
+        logger.info(`tool plan gate reset project=${projectPath}`);
       }
       const policy = decideExecutionPolicy(params.cfg, {
         source: "tool",
@@ -155,8 +155,8 @@ export function createCursorAgentTool(params: {
         projectPlanApproved: sessionStore.getApproval(projectPath),
       });
       if (policy.downgraded && policy.reason) {
-        logInfo(
-          `[cursor-agent] policy downgraded source=tool from=${requestedMode} to=${policy.mode} reason=${policy.reason}`,
+        logger.info(
+          `policy downgraded source=tool from=${requestedMode} to=${policy.mode} reason=${policy.reason}`,
         );
       }
 
@@ -187,11 +187,11 @@ export function createCursorAgentTool(params: {
       // Update session tracking state.
       if (result.sessionId) {
         sessionStore.set(projectPath, result.sessionId);
-        logInfo(`[cursor-agent] tool session tracked project=${projectPath} session=${result.sessionId}`);
+        logger.info(`tool session tracked project=${projectPath} session=${result.sessionId}`);
       }
       if (result.success && policy.grantProjectApprovalOnSuccess) {
         sessionStore.setApproval(projectPath);
-        logInfo(`[cursor-agent] tool plan gate approved project=${projectPath}`);
+        logger.info(`tool plan gate approved project=${projectPath}`);
       }
 
       const messages = formatRunResult(result);
