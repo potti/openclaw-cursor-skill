@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Mock Cursor Agent CLI that outputs stream-json formatted event streams.
+ * Mock Cursor CLI that outputs stream-json formatted event streams.
  * Used for integration tests without depending on the real Cursor CLI.
  *
  * Usage: node mock-agent.mjs <prompt>

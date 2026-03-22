@@ -33,7 +33,7 @@ export function formatRunResult(result: RunResult): string[] {
 function buildHeader(result: RunResult): string {
   const status = result.success ? "✅" : "❌";
   const statusText = result.success ? "Completed" : "Failed";
-  return `${status} **Cursor Agent** ${statusText}`;
+  return `${status} **Cursor CLI** ${statusText}`;
 }
 
 /** Extract file modification summary from tool call events */
@@ -140,7 +140,7 @@ function splitMessages(sections: string[]): string[] {
     messages.push(current.trim());
   }
 
-  return messages.length > 0 ? messages : ["Cursor Agent produced no output"];
+  return messages.length > 0 ? messages : ["Cursor CLI produced no output"];
 }
 
 /** Extract list of modified files from event stream */

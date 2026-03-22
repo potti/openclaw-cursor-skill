@@ -1,18 +1,18 @@
 ---
 name: cursor-plan
-description: Architecture planning and technical design skill using Cursor Agent in plan mode. Use when the user wants to design a feature, plan an implementation approach, explore trade-offs, get a technical proposal, or prepare a plan before coding begins. Produces a written plan without modifying files. Also used as the mandatory first step when enforcePlanBeforeDevelopment is enabled and the project has not yet been plan-approved.
+description: Architecture planning and technical design skill using Cursor CLI in plan mode. Use when the user wants to design a feature, plan an implementation approach, explore trade-offs, get a technical proposal, or prepare a plan before coding begins. Produces a written plan without modifying files. Also used as the mandatory first step when enforcePlanBeforeDevelopment is enabled and the project has not yet been plan-approved.
 ---
 
 # Architecture Planning and Technical Design (Plan Mode)
 
-> `cursor_agent` is an MCP tool. All planning operations go through this tool with `mode: plan`.
+> `cursor_cli` is an MCP tool. All planning operations go through this tool with `mode: plan`.
 
-> ⚠️ **Prerequisite**: If this is the first `cursor_agent` call in this session and you are not sure the tool is available, follow the `cursor-preflight` skill first.
+> ⚠️ **Prerequisite**: If this is the first `cursor_cli` call in this session and you are not sure the tool is available, follow the `cursor-preflight` skill first.
 
 > ⚠️ **Path and stop rules**:
 > - Read this skill only using the exact absolute path from `<available_skills>` or `skillsSnapshot`.
 > - Do not use `exec` + `ls/find` to explore project paths.
-> - Results from `cursor_agent` are verbatim — **do NOT summarize, rephrase, or add your own commentary**.
+> - Results from `cursor_cli` are verbatim — **do NOT summarize, rephrase, or add your own commentary**.
 
 ## When to Use
 
@@ -27,14 +27,14 @@ Trigger this skill when the user's request requires **planning or designing** be
 
 Also use this skill when:
 
-- The plugin's `enforcePlanBeforeDevelopment` policy is active and this project has not been plan-approved yet. In this case, calling `cursor_agent` with `mode: agent` is automatically downgraded to `mode: plan` by the plugin. **Explicitly use plan mode** to be transparent about the gate.
+- The plugin's `enforcePlanBeforeDevelopment` policy is active and this project has not been plan-approved yet. In this case, calling `cursor_cli` with `mode: agent` is automatically downgraded to `mode: plan` by the plugin. **Explicitly use plan mode** to be transparent about the gate.
 - The user explicitly says "plan first" or "don't make changes yet, just design it".
 
 ## Plan-First Gate Explained
 
 When `enforcePlanBeforeDevelopment: true` (the default), the plugin enforces a two-step workflow:
 
-1. **Step 1 — Plan** (this skill): `cursor_agent` runs in plan mode and produces a written plan.
+1. **Step 1 — Plan** (this skill): `cursor_cli` runs in plan mode and produces a written plan.
    - If the plan run succeeds, the project becomes **plan-approved**.
 2. **Step 2 — Develop** (`cursor-develop` skill): subsequent `agent` mode calls are now allowed for this project.
 
@@ -44,7 +44,7 @@ The approval is scoped per-project and persists until the gateway restarts or `r
 
 ## Tool Call
 
-Use the `cursor_agent` tool with:
+Use the `cursor_cli` tool with:
 
 - `project`: `workspace` (or the configured project key)
 - `prompt`: a design or planning question
@@ -54,7 +54,7 @@ Use the `cursor_agent` tool with:
 
 ## Prompt Construction Guidelines
 
-Write the prompt to extract a concrete, actionable plan from Cursor Agent:
+Write the prompt to extract a concrete, actionable plan from Cursor CLI:
 
 | User request | Example prompt |
 |---|---|
@@ -65,14 +65,14 @@ Write the prompt to extract a concrete, actionable plan from Cursor Agent:
 
 ## Response Handling
 
-- Return the `cursor_agent` plan output **exactly as received**.
+- Return the `cursor_cli` plan output **exactly as received**.
 - Do not summarize, condense, or rewrite the plan.
 - After returning the plan, offer the user the option to proceed with implementation using `cursor-develop`.
 
 Suggested follow-up message (after returning the plan verbatim):
 
 ```text
-The plan above was produced by Cursor Agent. 
+The plan above was produced by Cursor CLI. 
 Would you like to proceed with the implementation? 
 I can run the development step now (cursor-develop skill).
 ```
@@ -83,7 +83,7 @@ I can run the development step now (cursor-develop skill).
 
 User: "I want to add email notifications to the order system."
 
-1. Call `cursor_agent` with `mode: plan` and prompt:
+1. Call `cursor_cli` with `mode: plan` and prompt:
    `"Design a plan to add email notification support to the order system. Include: trigger points, email service integration options, template management, retry logic, and required config changes."`
 2. Return the plan verbatim.
 3. Ask user if they want to proceed with implementation.
@@ -97,7 +97,7 @@ User: "Implement the new user profile page."
 Plugin policy downgrades the request to plan mode (project not yet approved).
 
 1. Inform the user: "The plan-first gate is active for this project. Running a plan step first..."
-2. Call `cursor_agent` with `mode: plan` and prompt derived from the user's request:
+2. Call `cursor_cli` with `mode: plan` and prompt derived from the user's request:
    `"Plan the implementation of the new user profile page. Include: UI components needed, API endpoints required, data model changes, and integration with the auth system."`
 3. Return the plan verbatim.
 4. Inform the user: "Plan complete. The project is now approved for development. Reply to proceed with implementation."
@@ -108,7 +108,7 @@ Plugin policy downgrades the request to plan mode (project not yet approved).
 
 User: "I want to refactor how we handle database connections."
 
-1. Call `cursor_agent` with `mode: plan` and prompt:
+1. Call `cursor_cli` with `mode: plan` and prompt:
    `"Analyze the current database connection handling approach. Identify problems. Design a better approach using connection pooling and centralized config. List specific files to change."`
 2. Return the plan verbatim.
 3. Offer to implement when ready.
@@ -126,7 +126,7 @@ User: "I want to refactor how we handle database connections."
 
 | Parameter | Value |
 |---|---|
-| Tool | `cursor_agent` |
+| Tool | `cursor_cli` |
 | Mode | `plan` |
 | File changes | None (planning only) |
 | Plan gate | Clears the gate on success |

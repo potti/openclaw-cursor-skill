@@ -264,7 +264,7 @@ export async function runCursorAgent(opts: RunOptions): Promise<RunResult> {
 
       resolve({
         success: !error && completed,
-        resultText: resultText || (stderrText ? stderrText : (error ? `Cursor Agent execution failed: ${error}` : "No analysis result obtained")),
+        resultText: resultText || (stderrText ? stderrText : (error ? `Cursor CLI execution failed: ${error}` : "No analysis result obtained")),
         sessionId,
         durationMs,
         toolCallCount,

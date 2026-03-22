@@ -14,11 +14,11 @@ const DO_NOT_SUMMARIZE_DIRECTIVE = [
   "",
   "─".repeat(40),
   "⚠️ CRITICAL INSTRUCTION — READ CAREFULLY ⚠️",
-  "The COMPLETE analysis output from Cursor Agent is shown above.",
+  "The COMPLETE analysis output from Cursor CLI is shown above.",
   "You MUST NOT summarize, rephrase, interpret, or comment on ANY of the above content.",
   "You MUST NOT add your own analysis, suggestions, or follow-up questions about the above output.",
-  "Simply confirm that the Cursor Agent task has completed. Say ONLY something like:",
-  '"Cursor Agent analysis completed, results shown above." — nothing more.',
+  "Simply confirm that the Cursor CLI task has completed. Say ONLY something like:",
+  '"Cursor CLI analysis completed, results shown above." — nothing more.',
   "Any additional commentary will corrupt the original output and confuse the user.",
   "─".repeat(40),
 ].join("\n");
@@ -60,15 +60,15 @@ export function createCursorAgentTool(params: {
   });
 
   return (ctx: ToolContext) => ({
-    name: "cursor_agent",
-    label: "Cursor Agent",
+    name: "cursor_cli",
+    label: "Cursor CLI",
     description:
-      `Invoke the local Cursor Agent CLI to analyze, diagnose, or modify code in a project on the host machine. ` +
+      `Invoke the local Cursor CLI to analyze, diagnose, or modify code in a project on the host machine. ` +
       `Use this when the user asks about code analysis, debugging, or changes for a specific project. ` +
       (projectListStr
         ? `Available projects: ${projectListStr}. `
         : "If no projects configured, use project `workspace` to target <agent-workspace>/projects. ") +
-      `IMPORTANT: Results are returned verbatim from Cursor Agent. You MUST NOT summarize, rephrase, or add commentary to the output.`,
+      `IMPORTANT: Results are returned verbatim from Cursor CLI. You MUST NOT summarize, rephrase, or add commentary to the output.`,
     parameters: {
       type: "object" as const,
       properties: {
@@ -80,7 +80,7 @@ export function createCursorAgentTool(params: {
         },
         prompt: {
           type: "string" as const,
-          description: "Task description for Cursor Agent — be specific about what to analyze or change",
+          description: "Task description for Cursor CLI — be specific about what to analyze or change",
         },
         mode: {
           type: "string" as const,
@@ -89,7 +89,7 @@ export function createCursorAgentTool(params: {
         },
         newSession: {
           type: "boolean" as const,
-          description: "Force start a fresh session, discarding previous Cursor Agent context. Default false (auto-resumes last session for the project).",
+          description: "Force start a fresh session, discarding previous Cursor CLI context. Default false (auto-resumes last session for the project).",
         },
         resetPlanGate: {
           type: "boolean" as const,
@@ -210,7 +210,7 @@ export function createCursorAgentTool(params: {
             content: [{
               type: "text",
               text: [
-                `Cursor Agent task completed (${policy.mode} mode).`,
+                `Cursor CLI task completed (${policy.mode} mode).`,
                 policy.downgraded && policy.reason
                   ? `Policy: ${policy.reason} (mode: ${requestedMode} -> ${policy.mode})`
                   : "",

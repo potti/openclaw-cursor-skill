@@ -12,7 +12,7 @@ import { SessionStore } from "./session-store.js";
 import { logger, setVerboseLogs } from "./logger.js";
 import type { CursorAgentConfig, ParsedCommand, ResolvedBinary } from "./types.js";
 
-const PLUGIN_ID = "cursor-agent";
+const PLUGIN_ID = "cursor-cli";
 
 const DEFAULT_TIMEOUT_SEC = 600;
 const DEFAULT_NO_OUTPUT_TIMEOUT_SEC = 120;
@@ -162,7 +162,7 @@ export default {
 
     const agentPath = cfg.agentPath || detectAgentPath();
     if (!agentPath) {
-      logger.warn(`Cursor Agent CLI not found, plugin disabled`);
+      logger.warn(`Cursor CLI not found, plugin disabled`);
       return;
     }
 
@@ -202,7 +202,7 @@ export default {
     // ── Path 1: /cursor command (explicit invocation, bypasses PI Agent) ──
     api.registerCommand({
       name: "cursor",
-      description: `Invoke Cursor Agent for code analysis and modification. ${projectListStr}`,
+      description: `Invoke Cursor CLI for code analysis and modification. ${projectListStr}`,
       acceptsArgs: true,
       requireAuth: cfg.commandRequireAuth ?? true,
 
@@ -293,9 +293,9 @@ export default {
     if (cfg.enableAgentTool !== false) {
       api.registerTool(
         createCursorAgentTool({ agentPath, resolvedBinary, projects, cfg }),
-        { name: "cursor_agent", optional: true },
+        { name: "cursor_cli", optional: true },
       );
-      logger.info(`registered cursor_agent tool`);
+      logger.info(`registered cursor_cli tool`);
     }
 
     logger.info(`registered /cursor command (agent: ${agentPath}, projects: ${projectNames.join(", ") || "none"})`);

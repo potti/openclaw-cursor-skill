@@ -1,23 +1,23 @@
-# OpenClaw Cursor Agent Plugin
+# OpenClaw Cursor CLI Plugin
 
-Invoke local Cursor Agent CLI from OpenClaw, with policy-controlled plan-first delivery flow.
+Invoke local Cursor CLI from OpenClaw, with policy-controlled plan-first delivery flow.
 
 English | [Chinese](README_CN.md)
 
 > **This is an OpenClaw Plugin, not a Skill.**
 > Install it with `openclaw plugins install`, not by copying to `~/.openclaw/skills/`.
-> Installing to the skills folder will not register the `/cursor` command or `cursor_agent` tool.
+> Installing to the skills folder will not register the `/cursor` command or `cursor_cli` tool.
 
 ---
 
 ## Overview
 
-`OpenClaw Cursor Agent Plugin` is an OpenClaw Gateway plugin that bridges chat tasks to local Cursor Agent CLI execution.
+`OpenClaw Cursor CLI Plugin` is an OpenClaw Gateway plugin that bridges chat tasks to local Cursor CLI execution.
 
 It provides:
 
 - direct command invocation via `/cursor`
-- optional tool-based invocation via `cursor_agent`
+- optional tool-based invocation via `cursor_cli`
 - policy gate enforcement (plan-first for development tasks)
 - session and project-scoped state persistence
 - transparent execution output and validation reporting
@@ -39,14 +39,14 @@ Project-level command conventions:
 - `/deliver`: default delivery loop (plan -> implement -> validate -> report)
 - `/explore`: investigation only, no feature implementation
 
-Note: runtime plugin entry points remain `/cursor` and `cursor_agent`.
+Note: runtime plugin entry points remain `/cursor` and `cursor_cli`.
 
 ---
 
 ## Features
 
 - **Direct `/cursor` command**: explicit user-triggered invocation
-- **`cursor_agent` tool path**: PI Agent fallback/automation path
+- **`cursor_cli` tool path**: PI Agent fallback/automation path
 - **Three execution modes**: `ask`, `plan`, `agent`
 - **Policy controls**: mapped-project requirement, allow/deny task patterns, mode downgrade
 - **Plan-first gate**: development task forced to `plan` until project is approved
@@ -57,7 +57,7 @@ Note: runtime plugin entry points remain `/cursor` and `cursor_agent`.
 
 ## Install
 
-### 1) Install Cursor Agent CLI
+### 1) Install Cursor CLI
 
 macOS / Linux:
 
@@ -107,7 +107,7 @@ agent -p "Reply with: CLI ready" --mode ask
 ### 3) Install Plugin into OpenClaw
 
 > **Important:** This is a Plugin. Use `openclaw plugins install`, not `~/.openclaw/skills/`.
-> The skills directory is for `SKILL.md`-based skills only and will not register the `/cursor` command or `cursor_agent` tool.
+> The skills directory is for `SKILL.md`-based skills only and will not register the `/cursor` command or `cursor_cli` tool.
 
 **Recommended: link install from local directory (no copy, easiest to update)**
 
@@ -124,7 +124,7 @@ openclaw gateway restart
 
 # Verify plugin is registered
 openclaw plugins list
-openclaw plugins inspect cursor-agent
+openclaw plugins inspect cursor-cli
 ```
 
 **Alternative: tgz package install**
@@ -132,7 +132,7 @@ openclaw plugins inspect cursor-agent
 ```bash
 cd /path/to/openclaw-cursor-skill
 npm ci && npm run build && npm pack
-openclaw plugins install cursor-agent-0.1.0.tgz
+openclaw plugins install cursor-cli-0.1.0.tgz
 openclaw gateway restart
 ```
 
@@ -161,7 +161,7 @@ After installing the plugin, the minimum required entry in `~/.openclaw/openclaw
 {
   "plugins": {
     "entries": {
-      "cursor-agent": {
+      "cursor-cli": {
         "enabled": true
       }
     }
@@ -195,7 +195,7 @@ Override only the fields you want to change. For example, to enable verbose logs
 {
   "plugins": {
     "entries": {
-      "cursor-agent": {
+      "cursor-cli": {
         "enabled": true,
         "config": {
           "verboseLogs": true
@@ -217,7 +217,7 @@ Override `projects` only when you need custom path aliases:
 {
   "plugins": {
     "entries": {
-      "cursor-agent": {
+      "cursor-cli": {
         "enabled": true,
         "config": {
           "projects": {
@@ -293,7 +293,7 @@ Use logs to locate where execution stopped:
 ```text
 src/
 ├── index.ts            # plugin entry, /cursor command registration
-├── tool.ts             # cursor_agent tool entry
+├── tool.ts             # cursor_cli tool entry
 ├── policy.ts           # mode + plan gate policy decisions
 ├── runner.ts           # Cursor CLI process invocation and stream handling
 ├── parser.ts           # stream-json event parsing
@@ -306,7 +306,7 @@ src/
 Invocation paths:
 
 - user uses `/cursor` -> command handler -> policy -> runner
-- user uses regular chat -> PI Agent may call `cursor_agent` -> policy -> runner
+- user uses regular chat -> PI Agent may call `cursor_cli` -> policy -> runner
 
 ---
 

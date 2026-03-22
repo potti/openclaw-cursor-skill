@@ -1,5 +1,5 @@
 /**
- * Structured logger for cursor-agent plugin.
+ * Structured logger for cursor-cli plugin.
  * All output goes through console.debug/info/warn/error, which are captured by the OpenClaw gateway log.
  */
 
@@ -24,7 +24,7 @@ export class Logger {
   private prefix: string;
   private level: LogLevel;
 
-  constructor(prefix = "[cursor-agent]", level: LogLevel = getEnvLogLevel()) {
+  constructor(prefix = "[cursor-cli]", level: LogLevel = getEnvLogLevel()) {
     this.prefix = prefix;
     this.level = level;
   }

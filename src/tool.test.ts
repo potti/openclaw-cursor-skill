@@ -35,7 +35,7 @@ describe("createCursorAgentTool", () => {
     defaultTimeoutSec: 300,
     noOutputTimeoutSec: 60,
     enableMcp: true,
-    sessionStatePath: "/tmp/cursor-agent-tool.test-session.json",
+    sessionStatePath: "/tmp/cursor-cli-tool.test-session.json",
     enforcePlanBeforeDevelopment: false,
   };
   const agentPath = "/usr/local/bin/agent";
@@ -47,8 +47,8 @@ describe("createCursorAgentTool", () => {
   it("factory function returns correct tool definition", () => {
     const factory = createCursorAgentTool({ agentPath, projects, cfg });
     const tool = factory({});
-    expect(tool.name).toBe("cursor_agent");
-    expect(tool.label).toBe("Cursor Agent");
+    expect(tool.name).toBe("cursor_cli");
+    expect(tool.label).toBe("Cursor CLI");
     expect(tool.description).toContain("myapp");
     expect(tool.description).toContain("backend");
     expect(tool.description).toContain("MUST NOT summarize");
@@ -263,7 +263,7 @@ describe("createCursorAgentTool", () => {
     const gateCfg = {
       ...cfg,
       enforcePlanBeforeDevelopment: true,
-      sessionStatePath: "/tmp/cursor-agent-tool.plan-gate.test-session.json",
+      sessionStatePath: "/tmp/cursor-cli-tool.plan-gate.test-session.json",
     };
 
     const factory = createCursorAgentTool({ agentPath, projects, cfg: gateCfg });

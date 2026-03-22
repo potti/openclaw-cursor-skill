@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { SessionStore } from "./session-store.js";
 
-const statePath = join(tmpdir(), "cursor-agent-session-store.test.json");
+const statePath = join(tmpdir(), "cursor-cli-session-store.test.json");
 
 describe("SessionStore", () => {
   beforeEach(() => {

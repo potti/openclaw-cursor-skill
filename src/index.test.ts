@@ -250,7 +250,7 @@ describe("plugin.register", () => {
     plugin.register(api);
     expect(api.registerTool).toHaveBeenCalledWith(
       expect.any(Function),
-      expect.objectContaining({ name: "cursor_agent", optional: true }),
+      expect.objectContaining({ name: "cursor_cli", optional: true }),
     );
   });
 
@@ -265,7 +265,7 @@ describe("plugin.register", () => {
     plugin.register(api);
     expect(api.registerTool).toHaveBeenCalledWith(
       expect.any(Function),
-      expect.objectContaining({ name: "cursor_agent", optional: true }),
+      expect.objectContaining({ name: "cursor_cli", optional: true }),
     );
   });
 

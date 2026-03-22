@@ -1,4 +1,4 @@
-/** Resolved Cursor Agent executable information */
+/** Resolved Cursor CLI executable information */
 export interface ResolvedBinary {
   /** Node.js executable path (e.g. .../versions/xxx/node.exe) */
   nodeBin: string;

@@ -17,13 +17,13 @@ openclaw gateway restart
 
 # 4. Verify
 openclaw plugins list
-openclaw plugins inspect cursor-agent
+openclaw plugins inspect cursor-cli
 ```
 
 ## Why not ~/.openclaw/skills/?
 
 Placing this directory in `~/.openclaw/skills/` only loads `SKILL.md` files.
-It will NOT register the `/cursor` command or `cursor_agent` tool.
+It will NOT register the `/cursor` command or `cursor_cli` tool.
 The plugin runtime (`dist/index.js`) only loads via `openclaw plugins install`.
 
 ## Minimal openclaw.json entry (all other fields have defaults)
@@ -32,7 +32,7 @@ The plugin runtime (`dist/index.js`) only loads via `openclaw plugins install`.
 {
   "plugins": {
     "entries": {
-      "cursor-agent": {
+      "cursor-cli": {
         "enabled": true
       }
     }

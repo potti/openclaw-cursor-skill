@@ -88,7 +88,7 @@ export function decideExecutionPolicy(
     return { mode: "ask", downgraded: true, reason: "agent mode disabled for /cursor command" };
   }
   if (input.source === "tool" && cfg.allowAgentModeForTool === false) {
-    return { mode: "ask", downgraded: true, reason: "agent mode disabled for cursor_agent tool" };
+    return { mode: "ask", downgraded: true, reason: "agent mode disabled for cursor_cli tool" };
   }
   if ((cfg.requireMappedProjectForAgent ?? true) && !input.matchedMappedProject) {
     return { mode: "ask", downgraded: true, reason: "agent mode requires mapped project" };
