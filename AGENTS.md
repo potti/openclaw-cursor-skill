@@ -1,86 +1,126 @@
-# cursor-cli Plugin — OpenClaw AGENTS.md Reference
+# OpenClaw Agent — cursor_cli Usage Instructions
 
-This file shows the recommended snippet to paste into your **OpenClaw project `AGENTS.md`**
-(typically `~/.openclaw/projects/<your-project>/AGENTS.md` or the workspace-level `AGENTS.md`)
-so the agent explicitly knows when and how to use the `cursor_cli` tool.
+Copy the content below into your OpenClaw agent's AGENTS.md file
+(e.g. the agent workspace AGENTS.md, or your project-level AGENTS.md).
 
 ---
 
-## Paste this block into your project AGENTS.md
+## START COPY HERE ↓
 
-```markdown
-## Code Development — cursor-cli
+## MANDATORY: Use cursor_cli for ALL code work (never use your own LLM for repo files)
 
-You have access to the `cursor_cli` MCP tool. It invokes the local Cursor CLI to read, plan,
-and modify code in the project workspace.
+You have the `cursor_cli` MCP tool. It runs the same Cursor CLI as the `/cursor`
+slash command. Treat it as follows:
 
-### When to use cursor_cli
+| What you want (same as slash command) | How to call `cursor_cli` |
+|----------------|---------------------------|
+| Read-only Q&A (`/cursor … ask …`) | `mode: "ask"` |
+| Plan only (`/cursor … plan …`) | `mode: "plan"` |
+| Implement changes (`/cursor … agent …`) | `mode: "agent"` |
 
-| User intent | Tool call |
-|-------------|-----------|
-| Understand code, trace a bug, explain logic | `cursor_cli` with `mode: ask` |
-| Design a feature, plan an implementation | `cursor_cli` with `mode: plan` |
-| Implement a feature, fix a bug, write tests | `cursor_cli` with `mode: agent` |
-| Re-plan after the first plan is stale | `cursor_cli` with `mode: plan` + `resetPlanGate: true` |
+- `project`: usually `"workspace"` (maps to the agent's project directory)
+- `prompt`: concrete, with file paths and requirements
 
-**Do NOT** use your own LLM to read or modify project files directly.
-Always go through `cursor_cli` for anything related to the codebase.
+### Rule 1: Classify the user task first
 
-### Required parameters
+1. **Inquiry / analysis-only** — questions, explanations, code review without edits,
+   tracing bugs, “what does X do”, “how does Y work” → **inquiry flow** (see below).
+2. **Development** — new feature, bugfix that changes code, refactor, tests,
+   migrations → **development flow** (see below).
 
-- `project` — the project key. Use `workspace` if no explicit key is configured.
-  This maps to `<agent-workspace>/projects` on the host.
-- `prompt` — a specific, actionable description of what to analyze or implement.
-- `mode` — one of `ask` | `plan` | `agent` (default: `agent`).
+If you are unsure, ask one short clarifying question or default to **inquiry**
+with `ask` when no code change is clearly requested.
 
-### Plan-first policy
+---
 
-If `enforcePlanBeforeDevelopment` is enabled on the host (default: on), the first
-`agent`-mode call for a project is automatically downgraded to `plan` mode.
-The plugin returns a written plan. After you confirm the plan looks correct,
-call `cursor_cli` again with `mode: agent` — the gate is now open for this project.
+### Inquiry flow (equivalent to `/cursor workspace ask …`)
 
-To reset the gate (start over with a new plan):
+- Call `cursor_cli` with **`mode: "ask"`** only.
+- Do **not** switch branches or run the development flow for pure questions.
 
-- project: workspace
-- mode: plan
-- resetPlanGate: true
-- prompt: <describe what needs replanning>
+Example (same intent as `/cursor workspace ask list how routing is wired`):
+
+- `project`: `"workspace"`
+- `mode`: `"ask"`
+- `prompt`: full user question with context (paths, modules, error messages).
+
+---
+
+### Development flow (branch → plan → implement)
+
+Use this for any task that will change the repository.
+
+#### 1) Branch name
+
+Derive a short English slug from the feature or bugfix:
+
+- `feature_<slug>` — e.g. `feature_health_check`, `feature_funding_rate_okx`
+- Use lowercase letters, digits, `_` only. No spaces.
+- If the user gave a name, normalize it to this pattern.
+
+#### 2) Step A — switch branch (Git)
+
+Before planning or coding, ensure work happens on **`feature_<slug>`**:
+
+- `cursor_cli` with **`mode: "agent"`**
+- `prompt` must **only** handle Git, e.g.:
+
+  “**Implement** this git-only step: from the default branch (`main` or
+  `master`), fetch latest, create branch `feature_<slug>` if missing or checkout
+  it if it exists. Do not modify application source files except for merge
+  conflicts.”
+
+(Start the prompt with **Implement** so the host plugin keeps `agent` mode;
+branch-only text without a development keyword may be downgraded to `plan`.)
+
+If Git is not available or the command fails, stop and report verbatim.
+
+#### 3) Step B — plan (equivalent to `/cursor workspace plan …`)
+
+- `cursor_cli` with **`mode: "plan"`**
+- `prompt`: full technical plan request — scope, files to touch, APIs,
+  data model, migration, tests, rollout.
+
+Present the plan output to the user. If the plugin enforces plan-first gate,
+follow its output (often a plan on the first `agent` call — treat like Step B).
+
+#### 4) Step C — implement and test (equivalent to `/cursor workspace agent …`)
+
+- `cursor_cli` with **`mode: "agent"`**
+- `prompt`: implement the agreed plan, run tests, fix failures. Stay on
+  `feature_<slug>`.
+
+#### 5) Step D — optional verification
+
+- `cursor_cli` with **`mode: "ask"`** to review what changed or to answer
+  follow-up questions.
+
+---
 
 ### Output handling
 
-Return `cursor_cli` output **verbatim** — do NOT summarize, rephrase, or add commentary.
-If the output is a plan (gate triggered), present it to the user and ask for confirmation
-before proceeding with implementation.
-
-### Example — ask
-
-- project: workspace
-- mode: ask
-- prompt: Explain how the funding rate calculation works in internal/services/funding_rate_service.go
-
-### Example — plan
-
-- project: workspace
-- mode: plan
-- prompt: We need to replace the Binance funding rate source with OKX and Bybit. Design the approach: what to remove, what to add, interface changes, and migration steps.
-
-### Example — implement
-
-- project: workspace
-- mode: agent
-- prompt: Implement the plan: remove Binance funding rate client, add OKX and Bybit clients following the same interface, update the aggregation logic, add unit tests.
-```
+Return `cursor_cli` output **verbatim** unless the user explicitly asks for a
+short summary after a long run.
 
 ---
 
-## Notes
+### End-to-end example (development)
 
-- **`cursor_cli` is a Plugin tool**, not a Skill. It appears in the session tool list when
-  the `cursor-cli` plugin is installed and enabled in OpenClaw.
-- If `cursor_cli` does not appear in the tool list, the plugin is not loaded. Ask the user to
-  run `openclaw plugins install -l <plugin-dir>` and restart the gateway.
-- The `project: workspace` key resolves to `<agent-workspace>/projects` on the host.
-  Each agent workspace is isolated — agents cannot accidentally modify each other's files.
-- Gateway logs show `[cursor-cli]` prefixed entries for debugging.
-  Set `CURSOR_AGENT_LOG_LEVEL=debug` on the host for verbose output.
+User: “Add `/healthz` to the API.”
+
+1. **Slug**: `health_check` → branch `feature_health_check`
+2. **Step A (agent)**: git branch only — create/checkout `feature_health_check`
+3. **Step B (plan)**: plan the endpoint, middleware, tests
+4. **Step C (agent)**: implement + run tests on `feature_health_check`
+5. **Step D (ask, optional)**: quick review of the diff
+
+## END COPY HERE ↑
+
+---
+
+## Notes for plugin maintainers
+
+- `cursor_cli` is registered by the `cursor-cli` OpenClaw plugin (`dist/index.js`)
+- The `/cursor` slash command is an alternative entry point for manual testing
+- Gateway logs use `[cursor-cli]` prefix; set `CURSOR_AGENT_LOG_LEVEL=debug` for verbose output
+- `project: "workspace"` resolves to `<agent-workspace>/projects` — each agent is isolated
