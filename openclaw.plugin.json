@@ -86,8 +86,8 @@
       },
       "allowAgentModeForCommand": {
         "type": "boolean",
-        "default": false,
-        "description": "Allow /cursor command to execute agent mode, default false"
+        "default": true,
+        "description": "Allow /cursor command to execute agent mode, default true"
       },
       "allowAgentModeForTool": {
         "type": "boolean",

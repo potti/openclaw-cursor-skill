@@ -84,7 +84,7 @@ export function decideExecutionPolicy(
     return { mode: input.requestedMode, downgraded: false };
   }
 
-  if (input.source === "command" && cfg.allowAgentModeForCommand !== true) {
+  if (input.source === "command" && cfg.allowAgentModeForCommand === false) {
     return { mode: "ask", downgraded: true, reason: "agent mode disabled for /cursor command" };
   }
   if (input.source === "tool" && cfg.allowAgentModeForTool === false) {

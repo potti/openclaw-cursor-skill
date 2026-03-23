@@ -30,7 +30,7 @@ export interface CursorAgentConfig {
   allowAbsoluteProjectPath?: boolean;
   /** Allowed execution modes (agent/ask/plan). Default all */
   allowedModes?: Array<"agent" | "ask" | "plan">;
-  /** Whether /cursor command can run in agent mode, default false */
+  /** Whether /cursor command can run in agent mode, default true */
   allowAgentModeForCommand?: boolean;
   /** Whether cursor_agent tool can run in agent mode, default true */
   allowAgentModeForTool?: boolean;
