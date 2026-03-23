@@ -117,7 +117,7 @@ openclaw gateway restart
 
 # Verify plugin is registered
 openclaw plugins list
-openclaw plugins inspect cursor-cli
+openclaw plugins info cursor-cli
 ```
 
 **Alternative: tgz package install**

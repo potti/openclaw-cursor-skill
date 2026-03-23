@@ -293,7 +293,7 @@ export default {
     if (cfg.enableAgentTool !== false) {
       api.registerTool(
         createCursorAgentTool({ agentPath, resolvedBinary, projects, cfg }),
-        { name: "cursor_cli", optional: true },
+        { name: "cursor_cli" },
       );
       logger.info(`registered cursor_cli tool`);
     }

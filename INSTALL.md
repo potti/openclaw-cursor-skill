@@ -17,7 +17,7 @@ openclaw gateway restart
 
 # 4. Verify
 openclaw plugins list
-openclaw plugins inspect cursor-cli
+openclaw plugins info cursor-cli
 ```
 
 ## Why not ~/.openclaw/skills/?
