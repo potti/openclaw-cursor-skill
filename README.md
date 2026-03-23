@@ -34,13 +34,6 @@ For development-class tasks, recommended workflow is:
 4. run tests/checks
 5. return completion report to OpenClaw
 
-Project-level command conventions:
-
-- `/deliver`: default delivery loop (plan -> implement -> validate -> report)
-- `/explore`: investigation only, no feature implementation
-
-Note: runtime plugin entry points remain `/cursor` and `cursor_cli`.
-
 ---
 
 ## Features
@@ -261,7 +254,7 @@ Examples:
 
 ## Completion Report Contract
 
-For delivery tasks, final response should include:
+For development tasks, final response should include:
 
 - `Status`: `SUCCESS | PARTIAL | BLOCKED`
 - task summary
