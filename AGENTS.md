@@ -90,10 +90,74 @@ follow its output (often a plan on the first `agent` call — treat like Step B)
 - `prompt`: implement the agreed plan, run tests, fix failures. Stay on
   `feature_<slug>`.
 
-#### 5) Step D — optional verification
+#### 5) Step E — named progress poll (recurring until done)
+
+**When:** As soon as the task is classified as **development** and the feature
+**slug** is known (after **Rule 1** + **§1 Branch name**). Register the poll
+**before** Step C if possible, so the first tick can fire while work runs.
+
+**Name:** `cursor_progress_<slug>` (same `<slug>` as the branch, without the
+`feature_` prefix is OK, e.g. `cursor_progress_health_check`).
+
+**Interval (pick one):**
+
+| Task size | Interval |
+|-----------|----------|
+| Small (single module, few files, local change) | **3 minutes** |
+| Large (many packages, migrations, integration, unclear scope) | **5 minutes** |
+
+**What each tick does:**
+
+1. Obtain the **latest Cursor CLI outcome** for this feature, using one of:
+   - The **last completed** `cursor_cli` tool result in this session (if any), **or**
+   - A fresh **`cursor_cli`** call with **`mode: "ask"`**, **`project`**: `"workspace"`,
+     **do not** set `newSession` (default **resumes** the Cursor session for that project),
+     **`prompt`**: e.g. *“Summarize current progress on `feature_<slug>`: files touched,
+     tests run, errors, and what remains. If nothing is in progress, say COMPLETE.”*
+   - If your OpenClaw host exposes **gateway logs**, you may append relevant
+     `[cursor-cli]` lines as extra context (optional).
+
+2. **Post** that text into the **same dialog / channel** as the user (short
+   header line + verbatim body).
+
+3. **Completion:** If the summary indicates work is finished (tests OK, user
+   confirmed, or the ask output says **COMPLETE** / no further work), **delete
+   or cancel** the recurring task `cursor_progress_<slug>` immediately and
+   tell the user the poll stopped.
+
+4. **Failure:** If `cursor_cli` errors, post the error once; cancel the poll if
+   the task is aborted.
+
+**How to register the schedule:** Use whatever your OpenClaw / channel stack
+provides (built-in scheduler, cron hook, reminder bot, etc.). If **no**
+scheduler exists, simulate by telling the user you will **re-check every N
+minutes** until done (and do so when the next assistant turn is allowed).
+
+**Limitation:** A **single** long `cursor_cli` `agent` call **blocks** until the
+Cursor CLI process exits — there is no partial result inside that one call.
+Split large work into **smaller agent prompts** or accept that polls mainly
+reflect **between** calls or **after** each call returns.
+
+#### 6) Step D — optional verification
 
 - `cursor_cli` with **`mode: "ask"`** to review what changed or to answer
   follow-up questions.
+
+#### 7) Step F — push branch and merge into remote `test`
+
+After tests pass, perform Git delivery using `cursor_cli` with **`mode: "agent"`**:
+
+1. Ensure current branch is `feature_<slug>`.
+2. Commit all intended changes with a clear message.
+3. Push `feature_<slug>` to remote.
+4. Update local `test` from remote (`fetch` + checkout/pull).
+5. Merge `feature_<slug>` into local `test`.
+6. Resolve conflicts if any, re-run required tests.
+7. Push merged `test` branch to remote.
+8. Report final commit SHAs (feature head + test head) to the user.
+
+If merge/push fails, report the exact error and stop (do not force-push unless
+the user explicitly requests it).
 
 ---
 
@@ -109,10 +173,14 @@ short summary after a long run.
 User: “Add `/healthz` to the API.”
 
 1. **Slug**: `health_check` → branch `feature_health_check`
-2. **Step A (agent)**: git branch only — create/checkout `feature_health_check`
-3. **Step B (plan)**: plan the endpoint, middleware, tests
-4. **Step C (agent)**: implement + run tests on `feature_health_check`
-5. **Step D (ask, optional)**: quick review of the diff
+2. **Register poll** `cursor_progress_health_check` every **3 min** (small task)
+3. **Step A (agent)**: git branch only — create/checkout `feature_health_check`
+4. **Step B (plan)**: plan the endpoint, middleware, tests
+5. **Step C (agent)**: implement + run tests on `feature_health_check`
+6. **Poll ticks**: post latest ask-summary to the dialog until **COMPLETE**
+7. **Cancel** `cursor_progress_health_check`
+8. **Step D (ask, optional)**: quick review of the diff
+9. **Step F (agent)**: push `feature_health_check`, merge into remote `test`, push `test`
 
 ## END COPY HERE ↑
 
@@ -124,3 +192,6 @@ User: “Add `/healthz` to the API.”
 - The `/cursor` slash command is an alternative entry point for manual testing
 - Gateway logs use `[cursor-cli]` prefix; set `CURSOR_AGENT_LOG_LEVEL=debug` for verbose output
 - `project: "workspace"` resolves to `<agent-workspace>/projects` — each agent is isolated
+- **Progress polling (Step E)** is an agent/AGENTS convention: OpenClaw must supply a
+  real timer (or the agent manually re-enters on a schedule). This repo does not yet
+  implement a gateway cron for `cursor_progress_*`.
