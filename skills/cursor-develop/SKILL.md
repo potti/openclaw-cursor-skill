@@ -66,6 +66,7 @@ Use the `cursor_cli` tool with:
 - `project`: `workspace` (or the configured project key)
 - `prompt`: a specific implementation task
 - `mode`: `agent`
+- `model`: `auto` (default)
 
 ## Prompt Construction Guidelines
 

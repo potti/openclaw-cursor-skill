@@ -37,6 +37,7 @@ Use the `cursor_cli` tool with:
 - `project`: `workspace` (or the configured project key, e.g. `my-api`)
 - `prompt`: a specific question about the code
 - `mode`: `ask`
+- `model`: `auto` (default)
 
 **`mode: ask` is read-only** — Cursor CLI will not modify any files.
 

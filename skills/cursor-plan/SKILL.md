@@ -49,6 +49,7 @@ Use the `cursor_cli` tool with:
 - `project`: `workspace` (or the configured project key)
 - `prompt`: a design or planning question
 - `mode`: `plan`
+- `model`: `auto` (default)
 
 **`mode: plan` does not modify files.** It produces a written plan, architecture proposal, or change outline.
 

@@ -110,6 +110,7 @@ Set `phase: done`, `progress: 100`, summarize milestones for the user (without r
 
 - **Same project key** (e.g. `workspace`) for all steps of one epic.
 - **Default** `cursor_cli` behavior already resumes Cursor's session per project path — keep `newSession` **false** (omit or false).
+- **Model**: keep `model: auto` (default) unless you have a specific reason to pin a different model for the project.
 - **Reset** only when the user explicitly wants a fresh Cursor session (`newSession: true`) — then treat as a new conversation line in the task file.
 
 ## Checkpoints and Git
